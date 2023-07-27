@@ -42,71 +42,6 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   final List<File> _images = [];
   final picker = ImagePicker();
 
-  // 비동기 처리를 통해 카메라와 갤러리에서 이미지를 가져옴
-  getImage() async {
-    final List<XFile> images = await picker.pickMultiImage();
-    if (images != null) {
-      images.forEach((e) {
-        _images.add(File(e.path));
-      });
-
-      setState(() {});
-    }
-  }
-
-  // 이미지 삭제하는 함수
-  delImage(File image) {
-    _images.remove(image);
-  }
-
-  // 이미지를 보여주는 위젯
-  Widget showImage() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-      child: GridView.count(
-        shrinkWrap: true,
-        crossAxisCount: 3,
-        crossAxisSpacing: 2.5,
-        children: _images.map((e) => _gridImage(e)).toList(),
-      ),
-    );
-  }
-
-  Widget _gridImage(File image) {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            image: DecorationImage(
-              image: FileImage(image),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Positioned(
-            top: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  delImage(image);
-                });
-              },
-              child: Container(
-                width: 20,
-                height: 20,
-                child: Icon(
-                  Icons.cancel,
-                  size: 15,
-                ),
-              ),
-            )
-        )
-      ],
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -220,76 +155,119 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
               DividerBase(),
               // 게시글 작성 완료 버튼
               GestureDetector(
-                onTap: () {
-                  // 버튼을 눌렀을 때 수행할 동작 추가
-                  // 모든 필드가 작성되었는지 확인
-                  if (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) {
-                    // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 생성
-                    Question newQuestion = Question(
-                      title: title,
-                      content: content,
-                      author: user,
-                      create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
-                      modify_date: modify_date,
-                      category: category,
-                      views_count: views_count,
-                      isLikeClicked: isLikeClicked,
-                      answerCount: answerCount,
-                    );
-                    questionFirebase.addQuestion(newQuestion).then((value) {
-                      // 새로 생성된 데이터는 이전 화면인 게시물 list screen으로 전환되면서 전달됨(현재 infinite_scroll_page)
-                      Navigator.of(context).pop(newQuestion);
-                    });
-                    // 이미지 storage에 업로드
-                    // for (int i = 0; i < _images.length; i++) {
-                    //   FirebaseStorage.instance.ref("question/test_${i}").putFile(_images[i]);
-                    // }
-                  } else {
-                    // 작성되지 않은 필드가 있다면 dialog 띄움
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          content: Text('모든 필드를 입력해주세요.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: BLACK,
-                              fontSize: 18,
-                              fontFamily: 'Pretendard Variable',
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              child: Text('확인'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }
-                },
-                child: Padding(
-                  padding: EdgeInsets.only(top: 15, bottom: 15),
-                  child: Text(
-                    '작성 완료',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: TEXT_GREY,
-                      fontSize: 20,
-                      fontFamily: 'Pretendard Variable',
-                      fontWeight: FontWeight.w600,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 15, bottom: 15),
+                    child: Text(
+                      '작성 완료',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) ? KEY_BLUE : TEXT_GREY,
+                        fontSize: 20,
+                        fontFamily: 'Pretendard Variable',
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                )
+                onTap: () {
+                  createQuestion(context);
+                },
               ),
             ],
           ),
         ),
       )
+    );
+  }
+
+  // 질문 생성 함수
+  void createQuestion(BuildContext context) {
+    // 모든 필드가 작성되었는지 확인
+    if (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) {
+      // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 생성
+      Question newQuestion = Question(
+        title: title,
+        content: content,
+        author: user,
+        create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
+        modify_date: modify_date,
+        category: category,
+        views_count: views_count,
+        isLikeClicked: isLikeClicked,
+        answerCount: answerCount,
+      );
+      questionFirebase.addQuestion(newQuestion).then((value) {
+        // 새로 생성된 데이터는 이전 화면인 게시물 list screen으로 전환되면서 전달됨(현재 infinite_scroll_page)
+        Navigator.of(context).pop(newQuestion);
+      });
+      // 이미지 storage에 업로드
+      // for (int i = 0; i < _images.length; i++) {
+      //   FirebaseStorage.instance.ref("question/test_${i}").putFile(_images[i]);
+      // }
+    }
+  }
+
+  // 비동기 처리를 통해 카메라와 갤러리에서 이미지를 가져옴
+  getImage() async {
+    final List<XFile> images = await picker.pickMultiImage();
+    if (images != null) {
+      images.forEach((e) {
+        _images.add(File(e.path));
+      });
+
+      setState(() {});
+    }
+  }
+
+  // 이미지 삭제하는 함수
+  delImage(File image) {
+    _images.remove(image);
+  }
+
+  // 이미지를 보여주는 위젯
+  Widget showImage() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      child: GridView.count(
+        shrinkWrap: true,
+        crossAxisCount: 3,
+        crossAxisSpacing: 2.5,
+        children: _images.map((e) => _gridImage(e)).toList(),
+      ),
+    );
+  }
+
+  Widget _gridImage(File image) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            image: DecorationImage(
+              image: FileImage(image),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned(
+            top: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  delImage(image);
+                });
+              },
+              child: Container(
+                width: 20,
+                height: 20,
+                child: Icon(
+                  Icons.cancel,
+                  size: 15,
+                ),
+              ),
+            )
+        )
+      ],
     );
   }
 }

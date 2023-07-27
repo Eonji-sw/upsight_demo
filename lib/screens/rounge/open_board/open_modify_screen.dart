@@ -41,71 +41,6 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
   final List<File> _images = [];
   final picker = ImagePicker();
 
-  // 비동기 처리를 통해 카메라와 갤러리에서 이미지를 가져옴
-  getImage() async {
-    final List<XFile> images = await picker.pickMultiImage();
-    if (images != null) {
-      images.forEach((e) {
-        _images.add(File(e.path));
-      });
-
-      setState(() {});
-    }
-  }
-
-  // 이미지 삭제하는 함수
-  delImage(File image) {
-    _images.remove(image);
-  }
-
-  // 이미지를 보여주는 위젯
-  Widget showImage() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-      child: GridView.count(
-        shrinkWrap: true,
-        crossAxisCount: 3,
-        crossAxisSpacing: 2.5,
-        children: _images.map((e) => _gridImage(e)).toList(),
-      ),
-    );
-  }
-
-  Widget _gridImage(File image) {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            image: DecorationImage(
-              image: FileImage(image),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Positioned(
-            top: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  delImage(image);
-                });
-              },
-              child: Container(
-                width: 20,
-                height: 20,
-                child: Icon(
-                  Icons.cancel,
-                  size: 15,
-                ),
-              ),
-            )
-        )
-      ],
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -221,83 +156,126 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
               DividerBase(),
               // 게시글 수정 완료 버튼
               GestureDetector(
-                onTap: () async {
-                  // 모든 필드가 작성되었는지 확인
-                  if (questionData.title.isNotEmpty && questionData.content.isNotEmpty && questionData.category.isNotEmpty) {
-                    // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 업데이트
-                    Question newQuestion = Question(
-                      title: questionData.title,
-                      content: questionData.content,
-                      author: questionData.author,
-                      create_date: questionData.create_date,
-                      modify_date:
-                      DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
-                      category: questionData.category,
-                      views_count: questionData.views_count,
-                      isLikeClicked: questionData.isLikeClicked,
-                      reference: questionData.reference,
-                      answerCount: questionData.answerCount,
-                    );
-                    await questionFirebase.updateQuestion(newQuestion);
-                    await questionFirebase.questionReference.doc(document).update({
-                      'title': questionData.title,
-                      'content': questionData.content,
-                      'author': questionData.author,
-                      'create_date': questionData.create_date,
-                      'modify_date':
-                      DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
-                      'category': questionData.category,
-                      'views_count': questionData.views_count,
-                      'isLikeClicked': questionData.isLikeClicked,
-                    });
-                    // 수정된 question 데이터를 가지고 게시물 list screen으로 전환
-                    Navigator.pushNamed(context, '/test', arguments: newQuestion);
-                  } else {
-                    // 작성되지 않은 필드가 있다면 dialog 띄움
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          content: Text('모든 필드를 입력해주세요.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: BLACK,
-                              fontSize: 18,
-                              fontFamily: 'Pretendard Variable',
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              child: Text('확인'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }
-                },
-                child: Padding(
-                  padding: EdgeInsets.only(top: 15, bottom: 15),
-                  child: Text(
-                    '수정 완료',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: TEXT_GREY,
-                      fontSize: 20,
-                      fontFamily: 'Pretendard Variable',
-                      fontWeight: FontWeight.w600,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 15, bottom: 15),
+                    child: Text(
+                      '수정 완료',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: (questionData.title.isNotEmpty && questionData.content.isNotEmpty && questionData.category.isNotEmpty) ? KEY_BLUE : TEXT_GREY,
+                        fontSize: 20,
+                        fontFamily: 'Pretendard Variable',
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                )
+                onTap: () async {
+                  await modifyQuestion(context);
+                },
               ),
             ],
           ),
         ),
       )
+    );
+  }
+
+  Future<void> modifyQuestion(BuildContext context) async {
+    // 모든 필드가 작성되었는지 확인
+    if (questionData.title.isNotEmpty && questionData.content.isNotEmpty && questionData.category.isNotEmpty) {
+      // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 업데이트
+      Question newQuestion = Question(
+        title: questionData.title,
+        content: questionData.content,
+        author: questionData.author,
+        create_date: questionData.create_date,
+        modify_date:
+        DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
+        category: questionData.category,
+        views_count: questionData.views_count,
+        isLikeClicked: questionData.isLikeClicked,
+        reference: questionData.reference,
+        answerCount: questionData.answerCount,
+      );
+      await questionFirebase.updateQuestion(newQuestion);
+      await questionFirebase.questionReference.doc(document).update({
+        'title': questionData.title,
+        'content': questionData.content,
+        'author': questionData.author,
+        'create_date': questionData.create_date,
+        'modify_date':
+        DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
+        'category': questionData.category,
+        'views_count': questionData.views_count,
+        'isLikeClicked': questionData.isLikeClicked,
+      });
+      // 수정된 question 데이터를 가지고 게시물 list screen으로 전환
+      Navigator.pushNamed(context, '/test', arguments: newQuestion);
+    }
+  }
+
+  // 비동기 처리를 통해 카메라와 갤러리에서 이미지를 가져옴
+  getImage() async {
+    final List<XFile> images = await picker.pickMultiImage();
+    if (images != null) {
+      images.forEach((e) {
+        _images.add(File(e.path));
+      });
+
+      setState(() {});
+    }
+  }
+
+  // 이미지 삭제하는 함수
+  delImage(File image) {
+    _images.remove(image);
+  }
+
+  // 이미지를 보여주는 위젯
+  Widget showImage() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      child: GridView.count(
+        shrinkWrap: true,
+        crossAxisCount: 3,
+        crossAxisSpacing: 2.5,
+        children: _images.map((e) => _gridImage(e)).toList(),
+      ),
+    );
+  }
+
+  Widget _gridImage(File image) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            image: DecorationImage(
+              image: FileImage(image),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned(
+            top: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  delImage(image);
+                });
+              },
+              child: Container(
+                width: 20,
+                height: 20,
+                child: Icon(
+                  Icons.cancel,
+                  size: 15,
+                ),
+              ),
+            )
+        )
+      ],
     );
   }
 }

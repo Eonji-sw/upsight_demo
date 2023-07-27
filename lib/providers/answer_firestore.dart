@@ -18,7 +18,7 @@ class AnswerFirebase {
     }).toList();
   }
 
-  Future addAnswer(Answer answer) async {
+  Future createAnswer(Answer answer) async {
     answerReference.add(answer.toMap());
   }
 

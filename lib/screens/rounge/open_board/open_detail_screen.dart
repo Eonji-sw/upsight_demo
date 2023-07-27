@@ -5,6 +5,8 @@
 import 'package:board_project/providers/answer_firestore.dart';
 import 'package:board_project/providers/user_firestore.dart';
 import 'package:board_project/widgets/dialog_base.dart';
+import 'package:board_project/widgets/divider_base.dart';
+import 'package:board_project/widgets/divider_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
@@ -15,7 +17,11 @@ import 'package:intl/intl.dart';
 
 import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
-import '../../../widgets/appbar_base.dart';
+import '../../../widgets/appbar_action.dart';
+import '../../../widgets/button_no.dart';
+import '../../../widgets/button_yes.dart';
+import '../../../widgets/divider_sheet.dart';
+import '../../../widgets/listtile_sheet.dart';
 
 class OpenDetailScreen extends StatefulWidget {
   // infinite_scroll_page에서 전달받는 해당 question 데이터
@@ -43,9 +49,8 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   late DocumentSnapshot questionDoc;
 
   // 해당 question의 answer 데이터들  DocumentSnapshot 저장할 변수
-  QuerySnapshot? answer_snapshot;
-  QuerySnapshot? question_snapshot;
-  DocumentSnapshot? views_question;
+  QuerySnapshot? answerSnapshot;
+  QuerySnapshot? questionSnapshot;
 
   // 임의로 지정할 user name, 추후 user model과 연결해야해서 DB 연결시켜야함
   late String user;
@@ -57,7 +62,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   final _commentTextEditController = TextEditingController();
 
   // 해당 게시글(question)의 답변 목록 길이 초기화
-  int answers_null_len = COMMON_INIT_COUNT;
+  int answersNullLen = COMMON_INIT_COUNT;
 
   @override
   void initState() {
@@ -92,19 +97,19 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      question_snapshot = querySnapshot;
+      questionSnapshot = querySnapshot;
     }
   }
 
   // 해당 question의 answer 데이터의 snapshot 저장하는 함수
   Future<void> fetchAnswerData() async {
     // 해당 question의 answer 데이터의 DocumentSnapshot() 찾아서 저장
-    answer_snapshot = await answerFirebase.answerReference
+    answerSnapshot = await answerFirebase.answerReference
         .where('question', isEqualTo: questionId)
         .get();
     setState(() {
       // 해당 게시글(question)의 답변 목록 길이 저장
-      answers_null_len = answer_snapshot!.docs.length;
+      answersNullLen = answerSnapshot!.docs.length;
     });
   }
 
@@ -130,436 +135,344 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // appBar 구현 코드
-      appBar: const PreferredSize(
-          preferredSize: Size.fromHeight(65),
-          child: AppbarBase(title: '자유게시판', back: true,),
-      ),
+      // appBar: PreferredSize(
+      //     preferredSize: Size.fromHeight(65),
+      //     child: AppbarAction(title: '자유게시판', back: true, question: questionData, answer: answerSnapshot,),
+      // ),
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          backgroundColor: WHITE,
+          centerTitle: true,
+          // 제목
+          title: Text('자유게시판',
+            style: TextStyle(
+              color: BLACK,
+              fontSize: 20,
+              fontFamily: 'Pretendard Variable',
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          actions: <Widget>[
+            new IconButton(
+              icon: new Icon(Icons.more_vert, color: BLACK,),
+              onPressed: () {
+                showModalBottomSheet(
+                    backgroundColor: WHITE,
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListtileSheet(name: '공유하기', color: BLACK, onTab: () {}),
+                          ListtileSheet(name: '수정', color: BLACK,
+                              onTab: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (BuildContext context) =>
+                                        OpenModifyScreen(data: questionData),
+                                  ),
+                                );
+                              }
+                          ),
+                          ListtileSheet(name: '삭제', color: ALERT_RED,
+                              onTab: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return DialogBase(
+                                      title: '이 글을 삭제하시겠습니까?',
+                                      actions: [
+                                        ButtonNo(
+                                          name: '아니오',
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        ButtonYes(
+                                          name: '예',
+                                          onPressed: () async {
+                                            await deleteQuestion(context);
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }),
+                        ],
+                      );
+                    }
+                );
+              },
+            )
+          ],
+        ),
       // appBar 아래 UI 구현 코드
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              child: Column(children: <Widget>[
-                // 아이콘, 작성자, datetime
-                ListTile(
-                  leading: CircleAvatar(
-                    child: CircleAvatar(
-                      child: Icon(
-                        Icons.person,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    // 카테고리
+                    Padding(
+                      padding: EdgeInsets.only(left: 15, bottom: 10),
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 57,
+                            height: 25,
+                            decoration: ShapeDecoration(
+                              color: L_GREY,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            ),
+                          ),
+                          Positioned.fill(
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Text('#' + questionData.category!,
+                                style: TextStyle(
+                                  color: TEXT_GREY, // 글자의 색상 설정
+                                  fontSize: 12,
+                                  fontFamily: 'Pretendard Variable',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  title: Text(questionData.author),
-                  subtitle: Text(questionData.create_date + "     " + questionData.modify_date),
-                ),
-                // 제목
-                Container(
-                  padding: EdgeInsets.all(8),
-                  width: double.infinity,
-                  child: Text(
-                    questionData.title,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                    textScaleFactor: 1.4,
-                    textAlign: TextAlign.start,
-                  ),
-                ),
-                // 내용
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(questionData.content!),
-                  ),
-                ),
-                // 카테고리
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Text('#' + questionData.category!),
-                  ),
-                ),
-                // 수정 버튼, 삭제 버튼
-                Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        // 수정 버튼
-                        Container(
-                          width: 112.95,
-                          height: 41.94,
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                left: 0,
-                                top: 0,
-                                child: Container(
-                                  width: 112.95,
-                                  height: 41.94,
-                                  decoration: ShapeDecoration(
-                                    color: BLACK,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                ),
+                    // 제목
+                    Container(
+                      padding: EdgeInsets.only(left: 15),
+                      width: double.infinity,
+                      child: Text(
+                        questionData.title,
+                        style: TextStyle(
+                          color: BLACK,
+                          fontSize: 18,
+                          fontFamily: 'Pretendard Variable',
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
+                        contentPadding: EdgeInsets.only(left: 15),
+                        leading: Image.asset('assets/images/profile.png', width: 32.67),
+                        title: Row(
+                          children: [
+                            Text(questionData.author,
+                              style: TextStyle(
+                                color: TEXT_GREY,
+                                fontSize: 12,
+                                fontFamily: 'Pretendard Variable',
+                                fontWeight: FontWeight.w400,
+                              ),),
+                            Padding(
+                              padding: EdgeInsets.only(left: 5, right: 5),
+                              child: Image.asset('assets/images/dot.png', width: 2),
+                            ),
+                            Text(questionData.create_date,
+                              style: TextStyle(
+                                color: TEXT_GREY,
+                                fontSize: 12,
+                                fontFamily: 'Pretendard Variable',
+                                fontWeight: FontWeight.w400,
+                              ),),
+                          ],
+                        )
+                    ),
+                    DividerBase(),
+                    // 내용
+                    Padding(
+                      padding: EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(questionData.content!),
+                      ),
+                    ),
+                    // 좋아요, 댓글수, 조회수
+                    Row(children: [
+                      Container(
+                        child: 
+                        // 좋아요
+                        Row(
+                          children: [
+                            SizedBox(width: 15,),
+                            InkWell(
+                              onTap: () async {
+                                await changeLike();
+                              },
+                              child: Icon(
+                                  questionData.isLikeClicked ? Icons.favorite : Icons.favorite_border,
+                                  color: questionData.isLikeClicked ? SUB_BLUE : TEXT_GREY,
+                                  size: 18
                               ),
-                              Positioned(
-                                left: 11.92,
-                                top: 9.64,
-                                child: SizedBox(
-                                  width: 91.96,
-                                  height: 28.64,
-                                  child: TextButton(
-                                    onPressed: () {
-                                      // 현재 user와 해당 게시글의 작성자가 같은지 확인
-                                      if (user == questionData.author) {
-                                        // 해당 question 데이터 가지고 수정 screen으로 전환
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (BuildContext context) =>
-                                                OpenModifyScreen(
-                                                    data: questionData),
-                                          ),
-                                        );
-                                      } else {
-                                        // 현재 user와 해당 게시글의 작성자가 같지 않다면 수정을 할 수 없게 함
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: Text('권한 오류'),
-                                              content:
-                                              Text('해당 게시글의 작성자가 아닙니다.'),
-                                              actions: [
-                                                TextButton(
-                                                  child: Text('확인'),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      }
-                                    },
-                                    child: Text(
-                                      'Edit post',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: L_GREY,
-                                        fontSize: 20,
-                                        fontFamily: 'Pretendard Variable',
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                            ),
+                            SizedBox(width: 4,),
+                            Text('좋아요',
+                              style: TextStyle(
+                                color: TEXT_GREY,
+                                fontSize: 14,
+                                fontFamily: 'Pretendard Variable',
+                                fontWeight: FontWeight.w400,
                               ),
-                            ],
+                            ),
+                            SizedBox(width: 30,),
+                            Icon(Icons.messenger_outline, color: TEXT_GREY, size: 18,),
+                            SizedBox(width: 4,),
+                            Text(
+                              '댓글 ${(questionDoc.data() as Map<String, dynamic>)['answerCount'].toString()}',
+                              style: TextStyle(
+                                color: TEXT_GREY,
+                                fontSize: 14,
+                                fontFamily: 'Pretendard Variable',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Spacer(),
+                      // 조회수
+                      Row(
+                        children: [
+                          Icon(Icons.visibility_outlined, color: TEXT_GREY, size: 18),
+                          SizedBox(width: 4,),
+                          Text(
+                            '조회 ${(questionDoc.data() as Map<String, dynamic>)['views_count'].toString()}',
+                            style: TextStyle(
+                              color: TEXT_GREY,
+                              fontSize: 14,
+                              fontFamily: 'Pretendard Variable',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: 15,)
+                    ]),
+                    Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: DividerBase(),
+                    ),
+                    // 답변 목록이 null일 경우
+                    answersNullLen == COMMON_INIT_COUNT
+                        ? Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 25),
+                        child: Text('아직 댓글이 없습니다.',
+                          style: TextStyle(
+                            color: D_GREY,
+                            fontSize: 14,
+                            fontFamily: 'Pretendard Variable',
+                            fontWeight: FontWeight.w300,
                           ),
                         ),
+                      ),
+                    )
+                    // 답변 목록이 null이 아닐 경우
+                        : ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: answerSnapshot!.docs.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          // answer의 데이터 저장
+                          List<DocumentSnapshot> sortedDocs = answerSnapshot!.docs;
+                          // answer 데이터들을 최신순으로 sort
+                          sortedDocs.sort((a, b) {
+                            return a['create_date'].compareTo(b['create_date']);
+                          });
+                          DocumentSnapshot answerData = sortedDocs[index];
 
-                        // 삭제 버튼
-                        Container(
-                          width: 118.50,
-                          height: 41.94,
-                          child: Stack(
+                          return Column(
                             children: [
-                              Positioned(
-                                left: 2.78,
-                                top: 0,
-                                child: Container(
-                                  width: 112.95,
-                                  height: 41.94,
-                                  decoration: ShapeDecoration(
-                                    color: Color(0xFF628AAE),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                              ListTile(
+                                contentPadding: EdgeInsets.only(left: 15),
+                                leading: Image.asset('assets/images/profile.png', width: 32.67),
+                                title: Row(
+                                  children: [
+                                    Text(answerData['author'],
+                                      style: TextStyle(
+                                        color: BLACK,
+                                        fontSize: 12,
+                                        fontFamily: 'Pretendard Variable',
+                                        fontWeight: FontWeight.w400,
+                                      ),),
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 5, right: 5),
+                                      child: Image.asset('assets/images/dot.png', width: 2),
                                     ),
-                                  ),
+                                    Text(answerData['create_date'],
+                                      style: TextStyle(
+                                        color: TEXT_GREY,
+                                        fontSize: 12,
+                                        fontFamily: 'Pretendard Variable',
+                                        fontWeight: FontWeight.w400,
+                                      ),),
+                                  ],
                                 ),
-                              ),
-                              Positioned(
-                                left: 0,
-                                top: 9.64,
-                                child: SizedBox(
-                                  width: 118.50,
-                                  height: 28.64,
-                                  child: TextButton(
-                                    onPressed: () {
-                                      // 현재 user와 해당 게시글의 작성자가 같은지 확인
-                                      if (user == questionData.author) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              content: Text('모든 필드를 입력해주세요.',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: BLACK,
-                                                  fontSize: 18,
-                                                  fontFamily: 'Pretendard Variable',
-                                                  fontWeight: FontWeight.w500,
-                                                ),
+                                trailing: IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return DialogBase(
+                                            title: '선택하신 댓글을 삭제하시겠습니까?',
+                                            actions: [
+                                              ButtonNo(
+                                                name: '아니오',
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
                                               ),
-                                              actions: [
-                                                TextButton(
-                                                  child: Text('삭제'),
+                                              ButtonYes(
+                                                  name: '예',
                                                   onPressed: () async {
-                                                    QuerySnapshot snapshot =
-                                                    await questionFirebase.questionReference
-                                                        .where('title', isEqualTo: questionData.title)
-                                                        .where('content', isEqualTo: questionData.content)
-                                                        .where('author', isEqualTo: questionData.author)
-                                                        .where('create_date', isEqualTo: questionData.create_date)
-                                                        .get();
+                                                    questionFirebase.questionReference.doc(questionId).update({
+                                                      'answerCount': FieldValue.increment(DECREASE_COUNT),});
 
+                                                    QuerySnapshot snapshot = await answerFirebase.answerReference
+                                                        .where('question', isEqualTo: answerData['question'])
+                                                        .where('content', isEqualTo: answerData['content'])
+                                                        .where('create_date', isEqualTo: answerData['create_date'])
+                                                        .get();
                                                     if (snapshot.docs.isNotEmpty) {
                                                       String documentId = snapshot.docs.first.id;
-                                                      // 해당 question 데이터 삭제
-                                                      await questionFirebase.questionReference.doc(documentId).delete();
-
-                                                      // 해당 question의 answer 데이터 삭제
-                                                      for (int i = 0; i < answer_snapshot!.docs.length; i++) {
-                                                        await answerFirebase.answerReference.doc(answer_snapshot!.docs[i].id).delete();
-                                                      }
-
+                                                      await answerFirebase.answerReference.doc(documentId).delete();
                                                       // 게시물 list screen으로 전환
                                                       Navigator.pushNamed(context, '/test');
                                                     }
-                                                  },
-                                                ),
-                                                TextButton(
-                                                  child: Text('취소'),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      } else {
-                                        // 현재 user와 해당 게시글의 작성자가 같지 않다면 삭제를 할 수 없게 함
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: Text('권한 오류'),
-                                              content:
-                                              Text('해당 게시글의 작성자가 아닙니다.'),
-                                              actions: [
-                                                TextButton(
-                                                  child: Text('확인'),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      }
-                                    },
-                                    child: Text(
-                                      'Delete post',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: WHITE,
-                                        fontSize: 20,
-                                        fontFamily: 'Pretendard Variable',
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
+                                                  }
+                                              ),
+                                            ],
+                                          );
+                                        });
+                                  },
+                                  icon: Icon(Icons.delete, color: BLACK, size: 15,),
                                 ),
                               ),
+                              Padding(
+                                padding: EdgeInsets.only(left: 65, right: 15, bottom: 10),
+                                child: Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Text(answerData['content']),
+                                ),
+                              ),
+                              DividerSheet(),
                             ],
-                          ),
-                        ),
-                      ],
-                    )),
-                // 조회수, 좋아요
-                Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(children: [
-                      Container(
-                        padding: EdgeInsets.all(5),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 25.91,
-                              child: Text(
-                                'View  ',
-                                textAlign: TextAlign.justify,
-                                style: TextStyle(
-                                  color: TEXT_GREY,
-                                  fontSize: 10,
-                                  fontFamily: 'Pretendard Variable',
-                                  fontWeight: FontWeight.w300,
-                                ),
-                              ),
-                            ),
-                            // 조회수 보여주는 코드
-                            Text(
-                              (questionDoc.data() as Map<String, dynamic>)['views_count'].toString(),
-                              style: TextStyle(
-                                fontFamily: 'Pretendard Variable',
-                                // 원하는 폰트 패밀리로 변경
-                                fontSize: 10,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        child: IconButton(
-                          onPressed: () async {
-                            QuerySnapshot snapshot = await questionFirebase.questionReference
-                                .where('title', isEqualTo: questionData.title)
-                                .where('content', isEqualTo: questionData.content)
-                                .where('author', isEqualTo: questionData.author)
-                                .where('create_date', isEqualTo: questionData.create_date)
-                                .get();
-                            // 해당 게시글의 좋아요 유무를 반대로 바꿔줌
-                            if (snapshot.docs.isNotEmpty) {
-                              likeData = questionData.isLikeClicked;
-                              String documentId = snapshot.docs.first.id;
-                              await questionFirebase.questionReference.doc(documentId).update({
-                                'isLikeClicked': !questionData.isLikeClicked
-                              });
-                              setState(() {
-                                questionData.isLikeClicked = !likeData;
-                              });
-                            }
-                          },
-                          icon: Icon(
-                            // 좋아요가 true이면 blue, false이면 black으로 아이콘 색을 보여줌
-                            color: questionData.isLikeClicked
-                                ? Colors.blue : Colors.black,
-                            Icons.thumb_up_alt_outlined,
-                          ),
-                        ),
-                      ),
-                    ])),
-                // 경계
-                SizedBox(
-                  height: 1,
+                          );
+                        }),
+                  ]
                 ),
-                Divider(
-                  thickness: 1,
-                ),
-                // 답변 목록이 null일 경우
-                answers_null_len == COMMON_INIT_COUNT
-                    ? Center(
-                  child: Text('아직 작성된 답변이 없습니다'),
-                )
-                // 답변 목록이 null이 아닐 경우
-                    : ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: answer_snapshot!.docs.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      // answer의 데이터 저장
-                      List<DocumentSnapshot> sortedDocs = answer_snapshot!.docs;
-                      // answer 데이터들을 최신순으로 sort
-                      sortedDocs.sort((a, b) {
-                        return a['create_date'].compareTo(b['create_date']);
-                      });
-                      DocumentSnapshot answerData = sortedDocs[index];
-
-                      return ListTile(
-                        title: Row(
-                          children: [
-                            Text(answerData['content']),
-                            // 삭제 버튼
-                            IconButton(
-                              onPressed: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return DialogBase(
-                                        title: '선택하신 댓글을 삭제하시겠습니까?',
-                                        actions: [
-                                          TextButton(
-                                            style: ButtonStyle(
-                                              minimumSize: MaterialStateProperty.all(Size(114, 44)), // 버튼 크기 지정
-                                              backgroundColor: MaterialStateProperty.all(WHITE), // 배경색 변경
-                                              shape: MaterialStateProperty.all(
-                                                  RoundedRectangleBorder(
-                                                      side: BorderSide(width: 1, color: L_GREY,),
-                                                      borderRadius: BorderRadius.circular(4)
-                                                  )
-                                              ), // 모서리 둥글게 처리
-                                            ),
-                                            child: Text('아니오',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: TEXT_GREY,
-                                                fontSize: 18,
-                                                fontFamily: 'Pretendard Variable',
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
-                                          TextButton(
-                                              style: ButtonStyle(
-                                                minimumSize: MaterialStateProperty.all(Size(114, 44)), // 버튼 크기 지정
-                                                backgroundColor: MaterialStateProperty.all(KEY_BLUE), // 배경색 변경
-                                                shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(4))), // 모서리 둥글게 처리
-                                              ),
-                                              child: Text('예',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: WHITE,
-                                                  fontSize: 18,
-                                                  fontFamily: 'Pretendard Variable',
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              onPressed: () async {
-                                                questionFirebase.questionReference.doc(questionId).update({
-                                                  'answerCount': FieldValue.increment(DECREASE_COUNT),});
-
-                                                QuerySnapshot snapshot = await answerFirebase.answerReference
-                                                    .where('question', isEqualTo: answerData['question'])
-                                                    .where('content', isEqualTo: answerData['content'])
-                                                    .where('create_date', isEqualTo: answerData['create_date'])
-                                                    .get();
-                                                if (snapshot.docs.isNotEmpty) {
-                                                  String documentId = snapshot.docs.first.id;
-                                                  await answerFirebase.answerReference.doc(documentId).delete();
-                                                  // 게시물 list screen으로 전환
-                                                  Navigator.pushNamed(context, '/test');
-                                                }
-                                              }),
-                                        ],
-                                      );
-                                    });
-                              },
-                              icon: Icon(
-                                Icons.delete,
-                              ),
-                            ),
-                          ],
-                        ),
-                        subtitle: Text(answerData['author']),
-                        trailing: Column(
-                          children: [
-                            Text(answerData['create_date']),
-                            //Text(answerData['modify_date']),
-                          ],
-                        ),
-                      );
-                    }),
-              ]),
             ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(bottom: 20),
+            child: DividerBase(),
           ),
           // 댓글 입력창
           Container(
@@ -571,58 +484,42 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                   left: 0,
                   top: 0,
                   child: Container(
-                    width: 348.84,
-                    height: 54.22,
+                    width: 358,
+                    height: 40,
                     decoration: ShapeDecoration(
                       color: L_GREY,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      shadows: [
-                        BoxShadow(
-                          color: L_GREY,
-                          blurRadius: 4,
-                          offset: Offset(0, 0),
-                          spreadRadius: 2,
-                        )
-                      ],
                     ),
                   ),
                 ),
                 Positioned(
-                  left: 15,
-                  top: 12,
+                  left: 10,
+                  top: -5,
                   child: Container(
-                    width: 270,
+                    width: 300,
                     child: TextFormField(
                       controller: _commentTextEditController,
-                      validator: (value) {
-                        if (value!.trim().isEmpty) {
-                          return '댓글을 입력해주세요';
-                        }
-                        return null;
-                      },
                       decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: '댓글을 입력해주세요',
+                        hintText: '댓글을 입력해주세요.',
                         hintStyle: TextStyle(
-                          color: SUB_BLUE,
-                          fontSize: 14,
+                          color: TEXT_GREY,
+                          fontSize: 16,
                           fontFamily: 'Pretendard Variable',
-                          fontWeight: FontWeight.w300,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
+                      textAlignVertical: TextAlignVertical.bottom,
                     ),
-                  ),
+                  )
                 ),
                 Positioned(
-                  right: 15,
-                  top: 12,
+                  right: 0,
+                  top: -5,
                   child: IconButton(
-                    icon: Icon(
-                      Icons.send,
-                      color: SUB_BLUE,
-                    ),
+                    icon: Icon(Icons.send, color: TEXT_GREY,),
                     onPressed: () {
                       // 입력받은 answer 데이터
                       String commentText = _commentTextEditController.text;
@@ -645,22 +542,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                           },
                         );
                       } else {
-                        Answer newAnswer = Answer(
-                          question: questionId,
-                          content: commentText,
-                          author: user,
-                          create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
-                          //modify_date: 'Null',
-                        );
-                        // DB의 answer 컬렉션에 newAnswer document 추가
-                        answerFirebase.addAnswer(newAnswer);
-                        questionFirebase.questionReference.doc(questionId).update({
-                          'answerCount': FieldValue.increment(INCREASE_COUNT),
-                        });
-                        // 댓글 입력창을 비웁니다.
-                        _commentTextEditController.clear();
-                        // 데이터를 다시 불러옵니다.
-                        fetchAnswerData();
+                        createAnswer(commentText);
                       }
                     },
                   ),
@@ -671,5 +553,71 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
         ],
       ),
     );
+  }
+
+  // 댓글 생성 함수
+  void createAnswer(String commentText) {
+    Answer newAnswer = Answer(
+      question: questionId,
+      content: commentText,
+      author: user,
+      create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
+      //modify_date: 'Null',
+    );
+    // DB의 answer 컬렉션에 newAnswer document 추가
+    answerFirebase.createAnswer(newAnswer);
+    questionFirebase.questionReference.doc(questionId).update({
+      'answerCount': FieldValue.increment(INCREASE_COUNT),
+    });
+    // 댓글 입력창을 비웁니다.
+    _commentTextEditController.clear();
+    // 데이터를 다시 불러옵니다.
+    fetchAnswerData();
+  }
+
+  // 좋아요 유무 전환 함수
+  Future<void> changeLike() async {
+    QuerySnapshot snapshot = await questionFirebase.questionReference
+        .where('title', isEqualTo: questionData.title)
+        .where('content', isEqualTo: questionData.content)
+        .where('author', isEqualTo: questionData.author)
+        .where('create_date', isEqualTo: questionData.create_date)
+        .get();
+    // 해당 게시글의 좋아요 유무를 반대로 바꿔줌
+    if (snapshot.docs.isNotEmpty) {
+      likeData = questionData.isLikeClicked;
+      String documentId = snapshot.docs.first.id;
+      await questionFirebase.questionReference.doc(documentId).update({
+        'isLikeClicked': !questionData.isLikeClicked
+      });
+      setState(() {
+        questionData.isLikeClicked = !likeData;
+      });
+    }
+  }
+
+  // 질문 삭제 함수
+  Future<void> deleteQuestion(BuildContext context) async {
+    QuerySnapshot snapshot =
+    await questionFirebase.questionReference
+        .where('title', isEqualTo: questionData.title)
+        .where('content', isEqualTo: questionData.content)
+        .where('author', isEqualTo: questionData.author)
+        .where('create_date', isEqualTo: questionData.create_date)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      String documentId = snapshot.docs.first.id;
+      // 해당 question 데이터 삭제
+      await questionFirebase.questionReference.doc(documentId).delete();
+
+      // 해당 question의 answer 데이터 삭제
+      for (int i = 0; i < answerSnapshot!.docs.length; i++) {
+        await answerFirebase.answerReference.doc(answerSnapshot!.docs[i].id).delete();
+      }
+
+      // 게시물 list screen으로 전환
+      Navigator.pushNamed(context, '/test');
+    }
   }
 }
