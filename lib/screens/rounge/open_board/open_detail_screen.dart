@@ -16,41 +16,39 @@ import 'package:intl/intl.dart';
 
 import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
+import '../../../router.dart';
 import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
 import '../../../widgets/divider_sheet.dart';
 import '../../../widgets/listtile_sheet.dart';
 
 class OpenDetailScreen extends StatefulWidget {
-  // infinite_scroll_page에서 전달받는 해당 question 데이터
+  // infinite_scroll_page에서 전달받는 해당 question, questionId, questionDoc 데이터
   final Question data;
-  // infinite_scroll_page에서 전달받는 해당 questionId 데이터
   final String dataId;
-  // infinite_scroll_page에서 전달받는 해당 questionDoc 데이터
   final DocumentSnapshot dataDoc;
 
   OpenDetailScreen({required this.data, required this.dataId, required this.dataDoc});
-
   _OpenDetailScreenState createState() => _OpenDetailScreenState();
 }
 
 class _OpenDetailScreenState extends State<OpenDetailScreen> {
+  // firebase 객체 생성
   QuestionFirebase questionFirebase = QuestionFirebase();
   AnswerFirebase answerFirebase = AnswerFirebase();
   UserFirebase userFirebase = UserFirebase();
 
-  // 전달받은 question 데이터 저장할 변수
+  // 전달받은 question, questionId, questionDoc 데이터 저장할 변수
   late Question questionData;
-  // 전달받은 questionId 데이터 저장할 변수
   late String questionId;
-  // 전달받은 questionId 데이터 저장할 변수
   late DocumentSnapshot questionDoc;
 
-  // 해당 question의 answer 데이터들  DocumentSnapshot 저장할 변수
-  QuerySnapshot? answerSnapshot;
+  // 해당 question의 DocumentSnapshot 저장할 변수
   QuerySnapshot? questionSnapshot;
+  // 해당 question의 answer 데이터들의 DocumentSnapshot 저장할 변수
+  QuerySnapshot? answerSnapshot;
 
-  // 임의로 지정할 user name, 추후 user model과 연결해야해서 DB 연결시켜야함
+  // 현재 로그인한 사용자 name
   late String user;
 
   // 좋아요 버튼 눌렀는지 유무 저장하는 변수
@@ -59,66 +57,51 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   // 댓글 입력할 TextEditingController 선언
   final _commentTextEditController = TextEditingController();
 
-  // 해당 게시글(question)의 답변 목록 길이 초기화
+  // 해당 게시글(question)의 댓글 목록 길이 초기화
   int answersNullLen = COMMON_INIT_COUNT;
 
   @override
   void initState() {
     super.initState();
-    // 전달받은 question 데이터 저장
+    // 전달받은 question, questionId, questionDoc 데이터 저장
     questionData = widget.data;
-    // 전달받은 questionId 데이터 저장
     questionId = widget.dataId;
-    // 전달받은 questionDoc 데이터 저장
     questionDoc = widget.dataDoc;
 
     setState(() {
+      // firebase 객체 초기화
       questionFirebase.initDb();
       answerFirebase.initDb();
       userFirebase.initDb();
-      fetchQuestionData();
-      // 해당 question의 answer 데이터의 snapshot 저장
-      fetchAnswerData();
-      fetchUserData();
     });
-    user = 'admin';
-  }
-
-  // 해당 question 데이터의 snapshot 저장하는 함수
-  Future<void> fetchQuestionData() async {
-    // 해당 question의 answer 데이터의 DocumentSnapshot() 찾아서 저장
-    final querySnapshot = await questionFirebase.questionReference
-        .where('title', isEqualTo: questionData.title)
-        .where('content', isEqualTo: questionData.content)
-        .where('author', isEqualTo: questionData.author)
-        .where('create_date', isEqualTo: questionData.create_date)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      questionSnapshot = querySnapshot;
-    }
+    // 해당 answer 데이터의 snapshot 저장
+    fetchAnswer();
+    // user_id 값을 가져와서 user 변수에 할당
+    fetchUser();
   }
 
   // 해당 question의 answer 데이터의 snapshot 저장하는 함수
-  Future<void> fetchAnswerData() async {
-    // 해당 question의 answer 데이터의 DocumentSnapshot() 찾아서 저장
+  Future<void> fetchAnswer() async {
     answerSnapshot = await answerFirebase.answerReference
         .where('question', isEqualTo: questionId)
         .get();
+
     setState(() {
-      // 해당 게시글(question)의 답변 목록 길이 저장
+      // 해당 게시글(question)의 댓글 목록 길이 저장
       answersNullLen = answerSnapshot!.docs.length;
     });
   }
 
-  Future<void> fetchUserData() async {
+  // 사용자 데이터를 가져와서 user 변수에 할당하는 함수
+  Future<void> fetchUser() async {
     final userSnapshot = await userFirebase.userReference.get();
-    late DocumentSnapshot document;
 
     if (userSnapshot.docs.isNotEmpty) {
-      document = userSnapshot.docs.first;
+      final document = userSnapshot.docs.first;
+      setState(() {
+        user = (document.data() as Map<String, dynamic>)['user_id'];
+      });
     }
-    user = (document.data() as Map<String, dynamic>)['user_id'];
   }
 
   @override
@@ -132,7 +115,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar 구현 코드
+      // appBar
       // appBar: PreferredSize(
       //     preferredSize: Size.fromHeight(65),
       //     child: AppbarAction(title: '자유게시판', back: true, question: questionData, answer: answerSnapshot,),
@@ -166,7 +149,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (BuildContext context) =>
-                                        OpenModifyScreen(data: questionData),
+                                        OpenModifyScreen(data: questionData, dataId: questionId),
                                   ),
                                 );
                               }
@@ -204,7 +187,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
             )
           ],
         ),
-      // appBar 아래 UI 구현 코드
+      // body
       body: Column(
         children: [
           Expanded(
@@ -230,7 +213,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                               alignment: Alignment.center,
                               child: Text('#' + questionData.category!,
                                 style: TextStyle(
-                                  color: TEXT_GREY, // 글자의 색상 설정
+                                  color: TEXT_GREY,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -244,8 +227,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                     Container(
                       padding: EdgeInsets.only(left: 15),
                       width: double.infinity,
-                      child: Text(
-                        questionData.title,
+                      child: Text(questionData.title,
                         style: TextStyle(
                           color: BLACK,
                           fontSize: 18,
@@ -255,10 +237,11 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                       ),
                     ),
                     ListTile(
-                        contentPadding: EdgeInsets.only(left: 15),
+                        contentPadding: EdgeInsets.only(left: 15, right: 15),
                         leading: Image.asset('assets/images/profile.png', width: 32.67),
                         title: Row(
                           children: [
+                            // 작성자
                             Text(questionData.author,
                               style: TextStyle(
                                 color: TEXT_GREY,
@@ -269,6 +252,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                               padding: EdgeInsets.only(left: 5, right: 5),
                               child: Image.asset('assets/images/dot.png', width: 2),
                             ),
+                            // 작성일
                             Text(questionData.create_date,
                               style: TextStyle(
                                 color: TEXT_GREY,
@@ -290,11 +274,11 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                     // 좋아요, 댓글수, 조회수
                     Row(children: [
                       Container(
-                        child: 
-                        // 좋아요
+                        child:
                         Row(
                           children: [
                             SizedBox(width: 15,),
+                            // 좋아요
                             InkWell(
                               onTap: () async {
                                 await changeLike();
@@ -314,6 +298,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                               ),
                             ),
                             SizedBox(width: 30,),
+                            // 댓글
                             Icon(Icons.messenger_outline, color: TEXT_GREY, size: 18,),
                             SizedBox(width: 4,),
                             Text(
@@ -349,7 +334,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                       padding: EdgeInsets.only(top: 10),
                       child: DividerBase(),
                     ),
-                    // 답변 목록이 null일 경우
+                    // 댓글 목록이 null일 경우
                     answersNullLen == COMMON_INIT_COUNT
                         ? Center(
                       child: Padding(
@@ -363,7 +348,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                         ),
                       ),
                     )
-                    // 답변 목록이 null이 아닐 경우
+                    // 댓글 목록이 null이 아닐 경우
                         : ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
@@ -375,6 +360,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                           sortedDocs.sort((a, b) {
                             return a['create_date'].compareTo(b['create_date']);
                           });
+                          // 현재 answer data
                           DocumentSnapshot answerData = sortedDocs[index];
 
                           return Column(
@@ -386,6 +372,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                 leading: Image.asset('assets/images/profile.png', width: 32.67),
                                 title: Row(
                                   children: [
+                                    // 작성자
                                     Text(answerData['author'],
                                       style: TextStyle(
                                         color: BLACK,
@@ -396,6 +383,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                       padding: EdgeInsets.only(left: 5, right: 5),
                                       child: Image.asset('assets/images/dot.png', width: 2),
                                     ),
+                                    // 작성일
                                     Text(answerData['create_date'],
                                       style: TextStyle(
                                         color: TEXT_GREY,
@@ -404,6 +392,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                       ),),
                                   ],
                                 ),
+                                // 삭제 버튼
                                 trailing: IconButton(
                                   onPressed: () {
                                     showDialog(
@@ -431,6 +420,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                   icon: Icon(Icons.delete, color: BLACK, size: 15,),
                                 ),
                               ),
+                              // 내용
                               Padding(
                                 padding: EdgeInsets.only(left: 63, right: 18, bottom: 10),
                                 child: Align(
@@ -532,8 +522,10 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
 
   // 댓글 삭제 함수
   Future<void> deleteAnswer(DocumentSnapshot<Object?> answerData, BuildContext context) async {
+    // question의 댓글수 감소
     questionFirebase.questionReference.doc(questionId).update({
-      'answerCount': FieldValue.increment(DECREASE_COUNT),});
+      'answerCount': FieldValue.increment(DECREASE_COUNT),
+    });
 
     QuerySnapshot snapshot = await answerFirebase.answerReference
         .where('question', isEqualTo: answerData['question'])
@@ -544,28 +536,30 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
       String documentId = snapshot.docs.first.id;
       await answerFirebase.answerReference.doc(documentId).delete();
       // 게시물 list screen으로 전환
-      Navigator.pushNamed(context, '/test');
+      Navigator.pushNamed(context, boardRoute);
     }
   }
 
   // 댓글 생성 함수
   void createAnswer(String commentText) {
+    // 입력받은 데이터로 새로운 answer 데이터 생성하여 DB에 생성
     Answer newAnswer = Answer(
       question: questionId,
       content: commentText,
       author: user,
       create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
-      //modify_date: 'Null',
     );
-    // DB의 answer 컬렉션에 newAnswer document 추가
-    answerFirebase.createAnswer(newAnswer);
+    answerFirebase.addAnswer(newAnswer);
+
+    // question의 댓글수 증가
     questionFirebase.questionReference.doc(questionId).update({
       'answerCount': FieldValue.increment(INCREASE_COUNT),
     });
-    // 댓글 입력창을 비웁니다.
+
+    // 댓글 입력창 초기화
     _commentTextEditController.clear();
-    // 데이터를 다시 불러옵니다.
-    fetchAnswerData();
+    // 데이터를 다시 불러옴
+    fetchAnswer();
   }
 
   // 좋아요 유무 전환 함수
@@ -580,7 +574,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     if (snapshot.docs.isNotEmpty) {
       likeData = questionData.isLikeClicked;
       String documentId = snapshot.docs.first.id;
-      await questionFirebase.questionReference.doc(documentId).update({
+      await questionFirebase.questionReference.doc(questionId).update({
         'isLikeClicked': !questionData.isLikeClicked
       });
       setState(() {
@@ -591,26 +585,13 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
 
   // 질문 삭제 함수
   Future<void> deleteQuestion(BuildContext context) async {
-    QuerySnapshot snapshot =
-    await questionFirebase.questionReference
-        .where('title', isEqualTo: questionData.title)
-        .where('content', isEqualTo: questionData.content)
-        .where('author', isEqualTo: questionData.author)
-        .where('create_date', isEqualTo: questionData.create_date)
-        .get();
-
-    if (snapshot.docs.isNotEmpty) {
-      String documentId = snapshot.docs.first.id;
-      // 해당 question 데이터 삭제
-      await questionFirebase.questionReference.doc(documentId).delete();
-
-      // 해당 question의 answer 데이터 삭제
-      for (int i = 0; i < answerSnapshot!.docs.length; i++) {
-        await answerFirebase.answerReference.doc(answerSnapshot!.docs[i].id).delete();
-      }
-
-      // 게시물 list screen으로 전환
-      Navigator.pushNamed(context, '/test');
+    await questionFirebase.questionReference.doc(questionId).delete();
+    // 해당 question의 answer 데이터 삭제
+    for (int i = 0; i < answerSnapshot!.docs.length; i++) {
+      await answerFirebase.answerReference.doc(answerSnapshot!.docs[i].id).delete();
     }
+
+    // 게시물 list screen으로 전환
+    Navigator.pushNamed(context, boardRoute);
   }
 }

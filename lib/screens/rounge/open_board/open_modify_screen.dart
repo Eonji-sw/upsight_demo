@@ -2,7 +2,6 @@
 게시글(question) 수정하는 page
  */
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
 import 'package:intl/intl.dart';
@@ -20,10 +19,11 @@ import '../../../widgets/textform_base.dart';
 
 
 class OpenModifyScreen extends StatefulWidget {
-  // detail_screen에서 전달받는 해당 question 데이터
+  // detail_screen에서 전달받는 해당 question, questionId 데이터
   final Question data;
+  final String dataId;
 
-  OpenModifyScreen({required this.data});
+  OpenModifyScreen({required this.data, required this.dataId});
   _OpenModifyScreenState createState() => _OpenModifyScreenState();
 }
 
@@ -31,11 +31,9 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
   // firebase 객체 생성
   QuestionFirebase questionFirebase = QuestionFirebase();
 
-  // 전달받은 question 데이터 저장할 변수
+  // 전달받은 question, qeustionId 데이터 저장할 변수
   late Question questionData;
-
-  // 전달받은 question 데이터의 DocumentSnapshot id 저장할 변수
-  late String document;
+  late String questionId;
 
   // 게시물의 사진 초기화
   final List<File> _images = [];
@@ -46,25 +44,12 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
     super.initState();
     // 전달받은 question 데이터 저장
     questionData = widget.data;
-    // firebase 객체 초기화
-    questionFirebase.initDb();
-    // 해당 question 데이터의 snapshot 저장
-    fetchQuestion();
-  }
+    questionId = widget.dataId;
 
-  // 해당 question 데이터의 snapshot 저장하는 함수
-  void fetchQuestion() async {
-    QuerySnapshot snapshot = await questionFirebase.questionReference
-        .where('title', isEqualTo: questionData.title)
-        .where('content', isEqualTo: questionData.content)
-        .where('author', isEqualTo: questionData.author)
-        .where('create_date', isEqualTo: questionData.create_date)
-        .get();
-
-    if (snapshot.docs.isNotEmpty) {
-      document = snapshot.docs.first.id;
-      setState(() {});
-    }
+    setState(() {
+      // firebase 객체 초기화
+      questionFirebase.initDb();
+    });
   }
 
   @override
@@ -164,7 +149,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
     // 모든 필드가 작성되었는지 확인
     if (questionData.title.isNotEmpty && questionData.content.isNotEmpty && questionData.category.isNotEmpty) {
       // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 업데이트
-      await questionFirebase.questionReference.doc(document).update({
+      await questionFirebase.questionReference.doc(questionId).update({
         'title': questionData.title,
         'content': questionData.content,
         'author': questionData.author,
@@ -175,7 +160,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
         'isLikeClicked': questionData.isLikeClicked,
       });
       // 수정된 question 데이터를 가지고 게시물 list screen으로 전환
-      Navigator.pushNamed(context, boardRoute, arguments: questionFirebase.questionReference.doc(document).get());
+      Navigator.pushNamed(context, boardRoute, arguments: questionFirebase.questionReference.doc(questionId).get());
     }
   }
 

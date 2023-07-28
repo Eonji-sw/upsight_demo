@@ -35,9 +35,9 @@ class _TabScreenState extends State<TabScreen> {
         unselectedItemColor: TEXT_GREY,
         type: BottomNavigationBarType.fixed,
         items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
-          BottomNavigationBarItem(icon: Icon(Icons.sms), label: '라운지'),
-          BottomNavigationBarItem(icon: Icon(Icons.now_wallpaper), label:'공간기록'),
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: '홈'),
+          BottomNavigationBarItem(icon: Icon(Icons.forum), label: '라운지'),
+          BottomNavigationBarItem(icon: Icon(Icons.layers), label:'공간기록'),
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '캘린더'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: '내 활동'),
         ],
