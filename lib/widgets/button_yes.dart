@@ -21,7 +21,6 @@ class ButtonYes extends StatelessWidget {
           style: TextStyle(
             color: WHITE,
             fontSize: 18,
-            fontFamily: 'Pretendard Variable',
             fontWeight: FontWeight.w500,
           ),
         ),

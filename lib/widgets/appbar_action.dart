@@ -28,7 +28,6 @@
 //         style: TextStyle(
 //           color: BLACK,
 //           fontSize: 20,
-//           fontFamily: 'Pretendard Variable',
 //           fontWeight: FontWeight.w600,
 //         ),
 //       ),

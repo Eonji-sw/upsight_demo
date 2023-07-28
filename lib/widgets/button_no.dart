@@ -26,7 +26,6 @@ class ButtonNo extends StatelessWidget {
         style: TextStyle(
           color: TEXT_GREY,
           fontSize: 18,
-          fontFamily: 'Pretendard Variable',
           fontWeight: FontWeight.w500,
         ),
       ),

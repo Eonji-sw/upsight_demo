@@ -15,6 +15,7 @@ import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
 import '../../../widgets/appbar_base.dart';
 import '../../../widgets/divider_base.dart';
+import '../../../widgets/textform_base.dart';
 
 
 class OpenCreateScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class OpenCreateScreen extends StatefulWidget {
 }
 
 class _OpenCreateScreenState extends State<OpenCreateScreen> {
+  // firebase 객체 생성
   QuestionFirebase questionFirebase = QuestionFirebase();
   UserFirebase userFirebase = UserFirebase();
 
@@ -36,9 +38,10 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   bool isLikeClicked = false;
   int answerCount = COMMON_INIT_COUNT;
 
-  // 임의로 지정할 user name, 추후 user model과 연결해야해서 DB 연결시켜야함
+  // 현재 로그인한 사용자 name
   late String user;
 
+  // 게시물의 사진 초기화
   final List<File> _images = [];
   final picker = ImagePicker();
 
@@ -46,14 +49,15 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   void initState() {
     super.initState();
     setState(() {
+      // firebase 객체 초기화
       questionFirebase.initDb();
       userFirebase.initDb();
     });
-    // 'user_id' 값을 가져와서 'user' 변수에 할당
+    // user_id 값을 가져와서 user 변수에 할당
     fetchUser();
   }
 
-  // 사용자 데이터를 가져와서 'user' 변수에 할당하는 함수
+  // 사용자 데이터를 가져와서 user 변수에 할당하는 함수
   Future<void> fetchUser() async {
     final userSnapshot = await userFirebase.userReference.get();
 
@@ -65,22 +69,22 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
     }
   }
 
-  // 위젯을 만들고 화면에 보여주는 함수
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar 구현 코드
+      // appBar
         appBar: const PreferredSize(
           preferredSize: Size.fromHeight(65),
           child: AppbarBase(title: '게시글 작성', back: true,),
         ),
-      // appBar 아래 UI 구현 코드
+      // body
       body: SingleChildScrollView(
         child: Container(
           padding: EdgeInsets.only(left: 16, right: 16),
           child: Column(
             children: [
               DividerBase(),
+              // 카테고리 입력
               TextFormField(
                 decoration: InputDecoration(
                     border: InputBorder.none,
@@ -89,7 +93,6 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
                     hintStyle: TextStyle(
                       color: TEXT_GREY,
                       fontSize: 16,
-                      fontFamily: 'Pretendard Variable',
                       fontWeight: FontWeight.w300,
                     )
                 ),
@@ -101,18 +104,8 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
                 },
               ),
               DividerBase(),
-              TextFormField(
-                maxLength: MAX_TITLE_LENGTH,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: '제목을 입력해주세요.',
-                  hintStyle: TextStyle(
-                    color: TEXT_GREY,
-                    fontSize: 16,
-                    fontFamily: 'Pretendard Variable',
-                    fontWeight: FontWeight.w300,
-                  )
-                ),
+              // 제목 입력
+              TextformBase(text: '제목을 입력해주세요.', maxLine: 1, maxLength: MAX_TITLE_LENGTH,
                 // title 값이 작성되었는지 확인하여 입력 받은 데이터 저장
                 onChanged: (value) {
                   setState(() {
@@ -121,19 +114,8 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
                 },
               ),
               DividerBase(),
-              TextFormField(
-                maxLines: MAX_LINE,
-                maxLength: MAX_CONTNET_LENGTH,
-                decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: '내용을 입력해주세요.',
-                    hintStyle: TextStyle(
-                      color: TEXT_GREY,
-                      fontSize: 16,
-                      fontFamily: 'Pretendard Variable',
-                      fontWeight: FontWeight.w300,
-                    )
-                ),
+              // 내용 입력
+              TextformBase(text: '내용을 입력해주세요.', maxLine: MAX_LINE, maxLength: MAX_CONTNET_LENGTH,
                 // content 값이 작성되었는지 확인하여 입력 받은 데이터 저장
                 onChanged: (value) {
                   setState(() {
@@ -141,6 +123,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
                   });
                 },
               ),
+              // 이미지 입력
               Row(
                 children: [
                   IconButton(
@@ -157,13 +140,11 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
               GestureDetector(
                   child: Padding(
                     padding: EdgeInsets.only(top: 15, bottom: 15),
-                    child: Text(
-                      '작성 완료',
+                    child: Text('작성 완료',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) ? KEY_BLUE : TEXT_GREY,
                         fontSize: 20,
-                        fontFamily: 'Pretendard Variable',
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -181,7 +162,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
 
   // 질문 생성 함수
   void createQuestion(BuildContext context) {
-    // 모든 필드가 작성되었는지 확인
+    // 필수 필드가 작성되었는지 확인
     if (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) {
       // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 생성
       Question newQuestion = Question(
@@ -196,7 +177,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
         answerCount: answerCount,
       );
       questionFirebase.addQuestion(newQuestion).then((value) {
-        // 새로 생성된 데이터는 이전 화면인 게시물 list screen으로 전환되면서 전달됨(현재 infinite_scroll_page)
+        // 새로 생성된 데이터는 이전 화면인 게시물 list screen으로 전환되면서 전달됨
         Navigator.of(context).pop(newQuestion);
       });
       // 이미지 storage에 업로드
@@ -213,7 +194,6 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
       images.forEach((e) {
         _images.add(File(e.path));
       });
-
       setState(() {});
     }
   }
@@ -236,6 +216,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
     );
   }
 
+  // 이미지 UI 위젯
   Widget _gridImage(File image) {
     return Stack(
       children: [

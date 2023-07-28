@@ -51,7 +51,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                               style: TextStyle(
                                 color: BLACK,
                                 fontSize: 20,
-                                fontFamily: 'Pretendard Variable',
                                 fontWeight: FontWeight.w600,),),
                             Row(
                               children: [
@@ -61,7 +60,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                                   style: TextStyle(
                                     color: SUB_BLUE,
                                     fontSize: 14,
-                                    fontFamily: 'Pretendard Variable',
                                     fontWeight: FontWeight.w400,
                                   ),),
                               ],
@@ -118,7 +116,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                             style: TextStyle(
                               color: D_GREY,
                               fontSize: 14,
-                              fontFamily: 'Pretendard Variable',
                               fontWeight: FontWeight.w400,
                             ),),
                         ],
@@ -162,7 +159,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                             style: TextStyle(
                               color: D_GREY,
                               fontSize: 14,
-                              fontFamily: 'Pretendard Variable',
                               fontWeight: FontWeight.w400,
                             ),),
                         ],
@@ -206,7 +202,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                             style: TextStyle(
                               color: D_GREY,
                               fontSize: 14,
-                              fontFamily: 'Pretendard Variable',
                               fontWeight: FontWeight.w400,
                             ),),
                         ],
@@ -250,7 +245,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                             style: TextStyle(
                               color: D_GREY,
                               fontSize: 14,
-                              fontFamily: 'Pretendard Variable',
                               fontWeight: FontWeight.w400,
                             ),),
                         ],
@@ -291,7 +285,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                         style: TextStyle(
                           color: D_GREY,
                           fontSize: 16,
-                          fontFamily: 'Pretendard Variable',
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -312,7 +305,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                         style: TextStyle(
                           color: D_GREY,
                           fontSize: 16,
-                          fontFamily: 'Pretendard Variable',
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -333,7 +325,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                         style: TextStyle(
                           color: D_GREY,
                           fontSize: 16,
-                          fontFamily: 'Pretendard Variable',
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -354,7 +345,6 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                         style: TextStyle(
                           color: D_GREY,
                           fontSize: 16,
-                          fontFamily: 'Pretendard Variable',
                           fontWeight: FontWeight.w400,
                         ),
                       ),

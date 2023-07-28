@@ -30,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 color: BLACK,
                 fontSize: 20,
-                fontFamily: 'Pretendard Variable',
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -62,7 +61,6 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 color: BLACK,
                 fontSize: 20,
-                fontFamily: 'Pretendard Variable',
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -94,7 +92,6 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 color: BLACK,
                 fontSize: 20,
-                fontFamily: 'Pretendard Variable',
                 fontWeight: FontWeight.w500,
               ),
             ),

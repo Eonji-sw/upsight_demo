@@ -53,7 +53,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         titleTextStyle: const TextStyle(
           color: BLACK,
           fontSize: 20,
-          fontFamily: 'Pretendard Variable',
           fontWeight: FontWeight.w600,
         ),
         headerPadding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -75,7 +74,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 style: TextStyle(
                   color: D_GREY,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),),
               );
@@ -84,7 +82,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 style: TextStyle(
                   color: D_GREY,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),),
               );
@@ -93,7 +90,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 style: TextStyle(
                   color: D_GREY,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),),
               );
@@ -102,7 +98,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 style: TextStyle(
                   color: D_GREY,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),),
               );
@@ -111,7 +106,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 style: TextStyle(
                   color: D_GREY,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),),
               );
@@ -120,7 +114,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 style: TextStyle(
                   color: D_GREY,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),),
               );
@@ -129,7 +122,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 style: TextStyle(
                   color: ALERT_RED,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),),
               );
@@ -142,7 +134,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         defaultTextStyle: TextStyle(
           color: D_GREY,
           fontSize: 14,
-          fontFamily: 'Pretendard Variable',
           fontWeight: FontWeight.w400,
         ),
         // today 모양 설정
@@ -154,7 +145,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         todayTextStyle: TextStyle(
           color: WHITE,
           fontSize: 14,
-          fontFamily: 'Pretendard Variable',
           fontWeight: FontWeight.w400,
         ),
         // outsideDay 노출 x

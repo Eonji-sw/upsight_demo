@@ -32,7 +32,6 @@ class DialogBase extends StatelessWidget {
                   style: TextStyle(
                     color: BLACK,
                     fontSize: 18,
-                    fontFamily: 'Pretendard Variable',
                     fontWeight: FontWeight.w500,
                   ),
                 ),

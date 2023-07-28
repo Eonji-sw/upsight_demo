@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../constants/colors.dart';
 import 'divider_sheet.dart';
 
 class ListtileSheet extends StatelessWidget {
@@ -18,7 +17,6 @@ class ListtileSheet extends StatelessWidget {
               style: TextStyle(
                 color: color,
                 fontSize: 18,
-                fontFamily: 'Pretendard Variable',
                 fontWeight: FontWeight.w400,
               ),
             ),

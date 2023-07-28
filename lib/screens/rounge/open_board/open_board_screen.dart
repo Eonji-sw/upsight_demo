@@ -225,7 +225,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
         style: TextStyle(
           color: BLACK,
           fontSize: 18,
-          fontFamily: 'Pretendard Variable',
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -236,7 +235,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
             style: TextStyle(
               color: BLACK,
               fontSize: 16,
-              fontFamily: 'Pretendard Variable',
               fontWeight: FontWeight.w300,
             ),
           ),
@@ -248,7 +246,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                 style: TextStyle(
                   color: TEXT_GREY,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -445,7 +442,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                   style: TextStyle(
                     color: TEXT_GREY,
                     fontSize: 14,
-                    fontFamily: 'Pretendard Variable',
                     fontWeight: FontWeight.w600,
                   ),)
               ],
@@ -476,7 +472,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                     style: TextStyle(
                       color: selectedTab == '자유게시판' ? KEY_BLUE : TEXT_GREY,
                       fontSize: 14,
-                      fontFamily: 'Pretendard Variable',
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -501,7 +496,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                     style: TextStyle(
                       color: selectedTab == '질문하기' ? KEY_BLUE : TEXT_GREY,
                       fontSize: 14,
-                      fontFamily: 'Pretendard Variable',
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -520,7 +514,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                 hintStyle: TextStyle(
                   color: TEXT_GREY,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),
                 filled: true,
@@ -565,7 +558,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                 style: TextStyle(
                   color: BLACK,
                   fontSize: 14,
-                  fontFamily: 'Pretendard Variable',
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -621,7 +613,6 @@ class ExampleBottomSheet extends StatelessWidget {
             style: TextStyle(
               color: BLACK,
               fontSize: 18,
-              fontFamily: 'Pretendard Variable',
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -645,7 +636,6 @@ class ExampleBottomSheet extends StatelessWidget {
             style: TextStyle(
               color: BLACK,
               fontSize: 18,
-              fontFamily: 'Pretendard Variable',
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -669,7 +659,6 @@ class ExampleBottomSheet extends StatelessWidget {
             style: TextStyle(
               color: BLACK,
               fontSize: 18,
-              fontFamily: 'Pretendard Variable',
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -692,7 +681,6 @@ class ExampleBottomSheet extends StatelessWidget {
             style: TextStyle(
               color: BLACK,
               fontSize: 18,
-              fontFamily: 'Pretendard Variable',
               fontWeight: FontWeight.w500,
             ),
           ),

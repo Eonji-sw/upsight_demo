@@ -6,7 +6,6 @@ import 'package:board_project/providers/answer_firestore.dart';
 import 'package:board_project/providers/user_firestore.dart';
 import 'package:board_project/widgets/dialog_base.dart';
 import 'package:board_project/widgets/divider_base.dart';
-import 'package:board_project/widgets/divider_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
@@ -17,7 +16,6 @@ import 'package:intl/intl.dart';
 
 import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
-import '../../../widgets/appbar_action.dart';
 import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
 import '../../../widgets/divider_sheet.dart';
@@ -81,7 +79,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
       fetchQuestionData();
       // 해당 question의 answer 데이터의 snapshot 저장
       fetchAnswerData();
-      fetchUser();
+      fetchUserData();
     });
     user = 'admin';
   }
@@ -113,7 +111,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     });
   }
 
-  Future<void> fetchUser() async {
+  Future<void> fetchUserData() async {
     final userSnapshot = await userFirebase.userReference.get();
     late DocumentSnapshot document;
 
@@ -148,7 +146,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
             style: TextStyle(
               color: BLACK,
               fontSize: 20,
-              fontFamily: 'Pretendard Variable',
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -235,7 +232,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                 style: TextStyle(
                                   color: TEXT_GREY, // 글자의 색상 설정
                                   fontSize: 12,
-                                  fontFamily: 'Pretendard Variable',
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -253,7 +249,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                         style: TextStyle(
                           color: BLACK,
                           fontSize: 18,
-                          fontFamily: 'Pretendard Variable',
                           fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.start,
@@ -268,7 +263,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                               style: TextStyle(
                                 color: TEXT_GREY,
                                 fontSize: 12,
-                                fontFamily: 'Pretendard Variable',
                                 fontWeight: FontWeight.w400,
                               ),),
                             Padding(
@@ -279,7 +273,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                               style: TextStyle(
                                 color: TEXT_GREY,
                                 fontSize: 12,
-                                fontFamily: 'Pretendard Variable',
                                 fontWeight: FontWeight.w400,
                               ),),
                           ],
@@ -317,7 +310,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                               style: TextStyle(
                                 color: TEXT_GREY,
                                 fontSize: 14,
-                                fontFamily: 'Pretendard Variable',
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
@@ -329,7 +321,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                               style: TextStyle(
                                 color: TEXT_GREY,
                                 fontSize: 14,
-                                fontFamily: 'Pretendard Variable',
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
@@ -347,7 +338,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                             style: TextStyle(
                               color: TEXT_GREY,
                               fontSize: 14,
-                              fontFamily: 'Pretendard Variable',
                               fontWeight: FontWeight.w400,
                             ),
                           ),
@@ -368,7 +358,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                           style: TextStyle(
                             color: D_GREY,
                             fontSize: 14,
-                            fontFamily: 'Pretendard Variable',
                             fontWeight: FontWeight.w300,
                           ),
                         ),
@@ -391,7 +380,9 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                           return Column(
                             children: [
                               ListTile(
-                                contentPadding: EdgeInsets.only(left: 15),
+                                dense: true,
+                                visualDensity: VisualDensity(vertical: -4),
+                                contentPadding: EdgeInsets.only(left: 15, top: 10),
                                 leading: Image.asset('assets/images/profile.png', width: 32.67),
                                 title: Row(
                                   children: [
@@ -399,7 +390,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                       style: TextStyle(
                                         color: BLACK,
                                         fontSize: 12,
-                                        fontFamily: 'Pretendard Variable',
                                         fontWeight: FontWeight.w400,
                                       ),),
                                     Padding(
@@ -410,7 +400,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                       style: TextStyle(
                                         color: TEXT_GREY,
                                         fontSize: 12,
-                                        fontFamily: 'Pretendard Variable',
                                         fontWeight: FontWeight.w400,
                                       ),),
                                   ],
@@ -432,20 +421,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                               ButtonYes(
                                                   name: '예',
                                                   onPressed: () async {
-                                                    questionFirebase.questionReference.doc(questionId).update({
-                                                      'answerCount': FieldValue.increment(DECREASE_COUNT),});
-
-                                                    QuerySnapshot snapshot = await answerFirebase.answerReference
-                                                        .where('question', isEqualTo: answerData['question'])
-                                                        .where('content', isEqualTo: answerData['content'])
-                                                        .where('create_date', isEqualTo: answerData['create_date'])
-                                                        .get();
-                                                    if (snapshot.docs.isNotEmpty) {
-                                                      String documentId = snapshot.docs.first.id;
-                                                      await answerFirebase.answerReference.doc(documentId).delete();
-                                                      // 게시물 list screen으로 전환
-                                                      Navigator.pushNamed(context, '/test');
-                                                    }
+                                                    await deleteAnswer(answerData, context);
                                                   }
                                               ),
                                             ],
@@ -456,7 +432,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsets.only(left: 65, right: 15, bottom: 10),
+                                padding: EdgeInsets.only(left: 63, right: 18, bottom: 10),
                                 child: Align(
                                   alignment: Alignment.topLeft,
                                   child: Text(answerData['content']),
@@ -507,7 +483,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                         hintStyle: TextStyle(
                           color: TEXT_GREY,
                           fontSize: 16,
-                          fontFamily: 'Pretendard Variable',
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -553,6 +528,24 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
         ],
       ),
     );
+  }
+
+  // 댓글 삭제 함수
+  Future<void> deleteAnswer(DocumentSnapshot<Object?> answerData, BuildContext context) async {
+    questionFirebase.questionReference.doc(questionId).update({
+      'answerCount': FieldValue.increment(DECREASE_COUNT),});
+
+    QuerySnapshot snapshot = await answerFirebase.answerReference
+        .where('question', isEqualTo: answerData['question'])
+        .where('content', isEqualTo: answerData['content'])
+        .where('create_date', isEqualTo: answerData['create_date'])
+        .get();
+    if (snapshot.docs.isNotEmpty) {
+      String documentId = snapshot.docs.first.id;
+      await answerFirebase.answerReference.doc(documentId).delete();
+      // 게시물 list screen으로 전환
+      Navigator.pushNamed(context, '/test');
+    }
   }
 
   // 댓글 생성 함수

@@ -29,7 +29,6 @@ class _AuthScreenState extends State<AuthScreen> {
               style: TextStyle(
                 color: D_GREY,
                 fontSize: 16,
-                fontFamily: 'Pretendard Variable',
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -62,7 +61,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                 style: TextStyle(
                                   color: D_GREY,
                                   fontSize: 12,
-                                  fontFamily: 'Pretendard Variable',
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -96,7 +94,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                   style: TextStyle(
                                     color: D_GREY,
                                     fontSize: 12,
-                                    fontFamily: 'Pretendard Variable',
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -129,7 +126,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                   style: TextStyle(
                                     color: D_GREY,
                                     fontSize: 12,
-                                    fontFamily: 'Pretendard Variable',
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -162,7 +158,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,
-                                    fontFamily: 'Pretendard Variable',
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
