@@ -376,7 +376,7 @@ class _QnaBoardScreenState extends State<QnaBoardScreen> {
       // appBar 구현 코드
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(65),
-        child: AppbarBase(title: '라운지', back: false,),
+        child: AppbarBase(title: '라운지'),
       ),
       floatingActionButton: Align(
         alignment: Alignment.bottomCenter,

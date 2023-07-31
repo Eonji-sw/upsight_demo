@@ -13,7 +13,10 @@ import 'package:board_project/providers/question_firestore.dart';
 import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
 import '../../../router.dart';
-import '../../../widgets/appbar_base.dart';
+import '../../../widgets/appbar_back.dart';
+import '../../../widgets/button_no.dart';
+import '../../../widgets/button_yes.dart';
+import '../../../widgets/dialog_base.dart';
 import '../../../widgets/divider_base.dart';
 import '../../../widgets/textform_base.dart';
 
@@ -58,7 +61,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
       // appBar
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(65),
-        child: AppbarBase(title: '게시글 수정', back: true,),
+        child: AppbarBack(title: '게시글 수정'),
       ),
       // body
       body: SingleChildScrollView(
@@ -133,9 +136,30 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
                       ),
                     ),
                   ),
-                onTap: () async {
-                  await modifyQuestion(context);
-                },
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return DialogBase(
+                        title: '게시글 수정을 완료하시겠습니까?',
+                        actions: [
+                          ButtonNo(
+                            name: '아니오',
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          ButtonYes(
+                            name: '예',
+                            onPressed: () async {
+                              await modifyQuestion(context);
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
               ),
             ],
           ),

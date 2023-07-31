@@ -2,6 +2,7 @@
 게시글(question) 생성하는 page
  */
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
 import 'package:intl/intl.dart';
@@ -13,7 +14,11 @@ import 'package:board_project/providers/user_firestore.dart';
 
 import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
-import '../../../widgets/appbar_base.dart';
+import '../../../router.dart';
+import '../../../widgets/appbar_back.dart';
+import '../../../widgets/button_no.dart';
+import '../../../widgets/button_yes.dart';
+import '../../../widgets/dialog_base.dart';
 import '../../../widgets/divider_base.dart';
 import '../../../widgets/textform_base.dart';
 
@@ -37,6 +42,10 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   int views_count = COMMON_INIT_COUNT;
   bool isLikeClicked = false;
   int answerCount = COMMON_INIT_COUNT;
+
+  // 게시글(question) 하나를 눌렀을 때 detail screen에 넘겨줄 해당 게시글의 documentId, documentSnapshot
+  late String questionId;
+  late DocumentSnapshot questionDoc;
 
   // 현재 로그인한 사용자 name
   late String user;
@@ -75,7 +84,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
       // appBar
         appBar: const PreferredSize(
           preferredSize: Size.fromHeight(65),
-          child: AppbarBase(title: '게시글 작성', back: true,),
+          child: AppbarBack(title: '게시글 작성'),
         ),
       // body
       body: SingleChildScrollView(
@@ -150,7 +159,28 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
                     ),
                   ),
                 onTap: () {
-                  createQuestion(context);
+                  (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) ? showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return DialogBase(
+                        title: '게시글 작성을 완료하시겠습니까?',
+                        actions: [
+                          ButtonNo(
+                            name: '아니오',
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          ButtonYes(
+                            name: '예',
+                            onPressed: () async {
+                              await createQuestion(context);
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ) : Null;
                 },
               ),
             ],
@@ -161,7 +191,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   }
 
   // 질문 생성 함수
-  void createQuestion(BuildContext context) {
+  Future<void> createQuestion(BuildContext context) async {
     // 필수 필드가 작성되었는지 확인
     if (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) {
       // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 생성
@@ -176,10 +206,8 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
         isLikeClicked: isLikeClicked,
         answerCount: answerCount,
       );
-      questionFirebase.addQuestion(newQuestion).then((value) {
-        // 새로 생성된 데이터는 이전 화면인 게시물 list screen으로 전환되면서 전달됨
-        Navigator.of(context).pop(newQuestion);
-      });
+      questionFirebase.addQuestion(newQuestion);
+      Navigator.pushNamed(context, boardRoute);
       // 이미지 storage에 업로드
       // for (int i = 0; i < _images.length; i++) {
       //   FirebaseStorage.instance.ref("question/test_${i}").putFile(_images[i]);
@@ -196,11 +224,6 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
       });
       setState(() {});
     }
-  }
-
-  // 이미지 삭제하는 함수
-  delImage(File image) {
-    _images.remove(image);
   }
 
   // 이미지를 보여주는 위젯
@@ -235,7 +258,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
             child: GestureDetector(
               onTap: () {
                 setState(() {
-                  delImage(image);
+                  _images.remove(image);
                 });
               },
               child: Container(

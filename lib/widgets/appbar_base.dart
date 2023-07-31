@@ -4,13 +4,12 @@ import '../constants/colors.dart';
 
 class AppbarBase extends StatelessWidget {
   final String title;
-  final bool back;
-  const AppbarBase({Key? key, required this.title, required this.back}) : super(key: key);
+  const AppbarBase({Key? key, required this.title}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-        automaticallyImplyLeading: back,
+        automaticallyImplyLeading: false,
         backgroundColor: WHITE,
         centerTitle: true,
         // 제목
@@ -21,13 +20,6 @@ class AppbarBase extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-      // 뒤로가기 버튼
-      // leading: IconButton(
-      //     onPressed: () {
-      //       Navigator.pop(context);
-      //     },
-      //     color: BLACK,
-      //     icon: Icon(Icons.arrow_back_ios_new)),
     );
   }
 }

@@ -1,5 +1,6 @@
-const SheetList = [
-  '공유하기',
-  '수정',
-  '삭제'
+const BoardSheetList = [
+  '조회순',
+  '최신순',
+  '좋아요순',
+  '댓글순'
 ];

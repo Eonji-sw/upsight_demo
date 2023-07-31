@@ -121,7 +121,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
       //     child: AppbarAction(title: '자유게시판', back: true, question: questionData, answer: answerSnapshot,),
       // ),
         appBar: AppBar(
-          automaticallyImplyLeading: true,
           backgroundColor: WHITE,
           centerTitle: true,
           // 제목
@@ -132,6 +131,14 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
+          // 뒤로가기
+          leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              color: BLACK,
+              icon: Icon(Icons.arrow_back_ios_new)),
+          // 더보기
           actions: <Widget>[
             new IconButton(
               icon: new Icon(Icons.more_vert, color: BLACK,),
@@ -144,7 +151,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           ListtileSheet(name: '공유하기', color: BLACK, onTab: () {}),
-                          ListtileSheet(name: '수정', color: BLACK,
+                          user == questionData.author ? ListtileSheet(name: '수정', color: BLACK,
                               onTab: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
@@ -153,8 +160,8 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                   ),
                                 );
                               }
-                          ),
-                          ListtileSheet(name: '삭제', color: ALERT_RED,
+                          ) : ListtileSheet(name: '신고', color: BLACK, onTab: () {}),
+                          user == questionData.author ? ListtileSheet(name: '삭제', color: ALERT_RED,
                               onTab: () {
                                 showDialog(
                                   context: context,
@@ -178,7 +185,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                     );
                                   },
                                 );
-                              }),
+                              }) : ListtileSheet(name: '차단', color: BLACK, onTab: () {}),
                         ],
                       );
                     }

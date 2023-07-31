@@ -15,6 +15,11 @@ import 'package:board_project/providers/user_firestore.dart';
 import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
 import '../../../widgets/appbar_base.dart';
+import '../../../widgets/button_no.dart';
+import '../../../widgets/button_yes.dart';
+import '../../../widgets/dialog_base.dart';
+import '../../../widgets/divider_board.dart';
+import '../../../widgets/sheet_base.dart';
 import '../qna_board/qna_board_screen.dart';
 
 
@@ -64,7 +69,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
 
   // 조회수 반영 개선을 위한 변수
   late int resetViews;
-  bool isresetViews = false;
+  bool isResetViews = false;
 
   @override
   void initState() {
@@ -226,7 +231,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
           }
         }
 
-        isresetViews = false;
+        isResetViews = false;
 
         return Padding(padding: EdgeInsets.only(top: 3, bottom: 3, left: 15, right: 15), child: _buildItemWidget(questions[index]));
       },
@@ -277,13 +282,24 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
             return ListView.builder (
               itemCount: searchBoardResult.length,
               itemBuilder: (BuildContext context, int index) {
+                // 현재 index가 questions 크기와 같은지 판별하는 코드
+                if (index == searchBoardResult.length) {
+                  // 로딩 중이라면 로딩 circle 보여줌
+                  if (isLoading) {
+                    return Center(child: CircularProgressIndicator());
+                  } else {
+                    // 로딩 중이 아니라면 빈 위젯 보여줌
+                    return SizedBox.shrink();
+                  }
+                }
+
                 sortQuestion(searchBoardResult);
 
-                // if (resetViews != searchBoardResult[index].views_count && isresetViews) {
+                // if (resetViews != searchBoardResult[index].views_count && isResetViews) {
                 //   searchBoardResult[index].views_count = resetViews;
                 // }
 
-                return _buildItemWidget(searchBoardResult[index]);
+                return Padding(padding: EdgeInsets.only(top: 3, bottom: 3, left: 15, right: 15), child: _buildItemWidget(searchBoardResult[index]));
               },
               controller: _scrollController,
             );
@@ -298,21 +314,37 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
       // appBar
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(65),
-        child: AppbarBase(title: '라운지', back: false,),
+        child: AppbarBase(title: '라운지'),
       ),
       // floatingButton
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final newQuestion = await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (BuildContext context) => OpenCreateScreen(),
-            ),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return DialogBase(
+                title: '자유게시판에 글을 작성하시겠습니까?',
+                actions: [
+                  ButtonNo(
+                    name: '아니오',
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ButtonYes(
+                    name: '예',
+                    onPressed: () async {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => OpenCreateScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
           );
-          if (newQuestion != null) {
-            setState(() {
-              questions.insert(0, newQuestion);
-            });
-          }
         },
         backgroundColor: KEY_BLUE,
         elevation: 0, // 그림자를 제거하기 위해 elevation을 0으로 설정
@@ -432,7 +464,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                   backgroundColor: WHITE,
                   context: context,
                   builder: (BuildContext context) {
-                    return ExampleBottomSheet(
+                    return SheetBase(
                       onSortChanged: (String sortFilter) {
                         setState(() {
                           this.sortFilter = sortFilter;
@@ -606,7 +638,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
             );
 
             // 조회수 반영 개선을 위한 코드
-            isresetViews = true;
+            isResetViews = true;
             setState(() {
               resetViews = (questionDoc.data() as Map<String, dynamic>)['views_count'];
               if (question.views_count != resetViews) {
@@ -615,7 +647,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
             });
           },
         ),
-        DividerBase(),
+        DivideBoard(),
       ],
     );
   }
@@ -643,113 +675,5 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     setState(() {
       question.views_count += INCREASE_COUNT;
     });
-  }
-}
-
-class ExampleBottomSheet extends StatelessWidget {
-  final Function(String) onSortChanged;
-
-  ExampleBottomSheet({
-    required this.onSortChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ListTile(
-          title: Text(
-            '조회순 ',
-            style: TextStyle(
-              color: BLACK,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          onTap: () {
-            if (onSortChanged != '조회순') {
-              onSortChanged('조회순');
-            }
-            Navigator.pop(context);
-          },
-        ),
-        Container(
-          width: 357.26,
-          child: Divider(
-            color: D_GREY,
-            height: 1,
-          ),
-        ),
-        ListTile(
-          title: Text(
-            '최신순',
-            style: TextStyle(
-              color: BLACK,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          onTap: () {
-            if (onSortChanged != '최신순') {
-              onSortChanged('최신순');
-            }
-            Navigator.pop(context);
-          },
-        ),
-        Container(
-          width: 357.26,
-          child: Divider(
-            color: D_GREY,
-            height: 1,
-          ),
-        ),
-        ListTile(
-          title: Text(
-            '좋아요순',
-            style: TextStyle(
-              color: BLACK,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          onTap: () {
-            if (onSortChanged != '좋아요순') {
-              onSortChanged('좋아요순');
-            }
-            Navigator.pop(context);
-          },
-        ),
-        Container(
-          width: 357.26,
-          child: Divider(
-            color: D_GREY,
-            height: 1,
-          ),
-        ),
-        ListTile(
-          title: Text('댓글순',
-            style: TextStyle(
-              color: BLACK,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          onTap: () {
-            if (onSortChanged != '댓글순') {
-              onSortChanged('댓글순');
-            }
-            Navigator.pop(context);
-          },
-        ),
-        Container(
-          width: 357.26,
-          child: Divider(
-            color: D_GREY,
-            height: 1,
-          ),
-        ),
-      ],
-    );
   }
 }

@@ -11,16 +11,14 @@
 //
 // class AppbarAction extends StatelessWidget {
 //   final String title;
-//   final bool back;
 //   final Question question;
 //   final QuerySnapshot? answer;
 //
-//   AppbarAction({Key? key, required this.title, required this.back, required this.question, required this.answer}) : super(key: key);
+//   AppbarAction({Key? key, required this.title, required this.question, required this.answer}) : super(key: key);
 //
 //   @override
 //   Widget build(BuildContext context) {
 //     return AppBar(
-//       automaticallyImplyLeading: back,
 //       backgroundColor: WHITE,
 //       centerTitle: true,
 //       // 제목
@@ -31,7 +29,7 @@
 //           fontWeight: FontWeight.w600,
 //         ),
 //       ),
-//       // 뒤로가기 버튼
+//       // 뒤로가기
 //       // leading: IconButton(
 //       //     onPressed: () {
 //       //       Navigator.pop(context);
