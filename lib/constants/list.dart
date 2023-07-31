@@ -4,3 +4,11 @@ const BoardSheetList = [
   '좋아요순',
   '댓글순'
 ];
+
+const BoardFilterList = [
+  '하자보수',
+  '부동산계약',
+  '임대',
+  '임차',
+  '임대차'
+];

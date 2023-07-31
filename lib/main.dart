@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
       title: 'UpSight',
       theme: ThemeData(
         fontFamily: 'Pretendard',
+        scaffoldBackgroundColor: WHITE,
         colorScheme: ColorScheme.fromSeed(seedColor: KEY_BLUE),
         useMaterial3: true,
       ),

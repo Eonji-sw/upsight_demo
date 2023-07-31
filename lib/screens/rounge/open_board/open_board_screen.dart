@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:board_project/providers/user_firestore.dart';
 import '../../../constants/colors.dart';
+import '../../../constants/list.dart';
 import '../../../constants/size.dart';
 import '../../../widgets/appbar_base.dart';
 import '../../../widgets/button_no.dart';
@@ -39,9 +40,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   // 현재 로그인한 사용자 name
   late String user;
 
-  // 상단바 색상 초기 설정을 위한 현재 게시판 name
-  String selectedTab = '자유게시판';
-
   // 화면에서 한 번에 보여줄 리스트 갯수, 밑으로 스크롤하면 해당 크기만큼 추가로 로딩
   int pageSize = COMMON_PAGE_SIZE;
   // 스크롤하여 가장 마지막에 로드된 question document 위치 저장하는 변수
@@ -63,6 +61,9 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
 
   // 검색어 저장할 변수
   String searchText = '';
+
+  // 선택된 필터들을 저장할 리스트
+  List<String> selectedFilters = [];
 
   // 댓글 수 변수 정의
   int totalAnswerCount = COMMON_INIT_COUNT;
@@ -240,7 +241,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   }
 
   // 검색된 question 목록을 보여주기 위한 함수
-  Widget _searchItemWidget() {
+  Widget _searchItemWidget(List<String> selectedFilters) {
     return FutureBuilder(
         future: searchResults,
         builder: (context, snapshot) {
@@ -278,6 +279,13 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
               ),
             );
           } else {
+            if (selectedFilters.isNotEmpty) {
+              // 검색 결과를 선택한 필터에 맞게 필터링
+              searchBoardResult = searchBoardResult
+                  .where((question) => selectedFilters.contains(question.category))
+                  .toList();
+            }
+
             // 검색된 결과들을 보여주는 UI 코드
             return ListView.builder (
               itemCount: searchBoardResult.length,
@@ -317,92 +325,80 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
         child: AppbarBase(title: '라운지'),
       ),
       // floatingButton
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return DialogBase(
-                title: '자유게시판에 글을 작성하시겠습니까?',
-                actions: [
-                  ButtonNo(
-                    name: '아니오',
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  ButtonYes(
-                    name: '예',
-                    onPressed: () async {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (BuildContext context) => OpenCreateScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        },
-        backgroundColor: KEY_BLUE,
-        elevation: 0, // 그림자를 제거하기 위해 elevation을 0으로 설정
-        shape: CircleBorder(),
-        child: Icon(Icons.edit, color: WHITE),
-      ),
+      floatingActionButton: buildFloating(context),
       // body
       body: Column(
         children: <Widget>[
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding(
-                padding: EdgeInsets.only(left: 15, right: 15),
-                child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      selectedTab = '자유게시판';
-                    });
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => OpenBoardScreen()),
-                    );
-                  },
-                  child: Text(
-                    '자유게시판',
-                    style: TextStyle(
-                      color: selectedTab == '자유게시판' ? KEY_BLUE : TEXT_GREY,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => OpenBoardScreen()),
+                        );
+                      },
+                      child: Text('자유게시판',
+                        style: TextStyle(
+                          color: KEY_BLUE,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                  ),
+                    Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: SizedBox(
+                          height: 2,
+                          width: double.infinity,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                                color: KEY_BLUE
+                            ),
+                          ),
+                        )
+                    )
+                  ]
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.only(left: 15, right: 15),
-                child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      selectedTab = '질문하기';
-                    });
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => QnaBoardScreen()),
-
-                    );
-                  },
-                  child: Text(
-                    '질문하기',
-                    style: TextStyle(
-                      color: selectedTab == '질문하기' ? KEY_BLUE : TEXT_GREY,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
+              Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => QnaBoardScreen()),
+                          );
+                        },
+                        child: Text('질문하기',
+                          style: TextStyle(
+                            color: TEXT_GREY,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: SizedBox(
+                            height: 2,
+                            width: double.infinity,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                  color: WHITE
+                              ),
+                            ),
+                          )
+                      )
+                    ]
+                  )
+              )
             ],
           ),
           // 검색창
@@ -447,6 +443,104 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
               textInputAction: TextInputAction.search,
               onFieldSubmitted: controlSearching,
             ),),
+          // 필터링
+          Container(
+            height: 30,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                    child: ListView(
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      children: List.generate(BoardFilterList.length, (index) {
+                        String currentFilter = BoardFilterList[index];
+                        bool isSelected = selectedFilters.contains(currentFilter);
+
+                        return Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 5),
+                          child: ElevatedButton(
+                            child: Text(currentFilter,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: isSelected? KEY_BLUE : TEXT_GREY,
+                                height: 1,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              side: BorderSide(width: 1, color: isSelected? KEY_BLUE : L_GREY),
+                              elevation: 0,
+                              backgroundColor: WHITE,
+                            ),
+                            onPressed: () {
+                              toggleFilter(currentFilter);
+                              setState(() {
+                                if (selectedFilters.isEmpty) {
+                                  questions.clear();
+                                  lastDocument = null;
+                                  isLastPage = false;
+                                  fetchData();
+                                } else {
+                                  questions.clear();
+                                  lastDocument = null;
+                                  isLastPage = false;
+                                  fetchDataWithFilter();
+                                }
+                              });
+                            },
+                          ),
+                        );
+                      }),
+                    ),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: ElevatedButton(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.refresh,
+                          color: KEY_BLUE,
+                          size: 18,
+                        ),
+                        SizedBox(width: 1,),
+                        Text('초기화',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: KEY_BLUE,
+                            height: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      elevation: 0,
+                      backgroundColor: WHITE,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        selectedFilters.clear();
+                        questions.clear();
+                        lastDocument = null;
+                        isLastPage = false;
+                        fetchData();
+                      });
+                    },
+                  ),
+                )
+              ],
+            )
+          ),
           // 정렬 기준
           Align(
             alignment: Alignment.centerLeft,
@@ -483,10 +577,99 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
           DividerBase(),
           // 게시글 리스트
           Expanded(
-              child: searchText.isEmpty ? _totalItemWidget() : _searchItemWidget()
+              child: searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters)
           ),
         ],
       ),
+    );
+  }
+
+  void toggleFilter(String filter) {
+    setState(() {
+      if (selectedFilters.contains(filter)) {
+        selectedFilters.remove(filter);
+      } else {
+        selectedFilters.add(filter);
+      }
+    });
+  }
+
+  Future<void> fetchDataWithFilter() async {
+    // 로딩 중인지 DB에서 받아온 데이터가 마지막인지 확인
+    if (isLoading || isLastPage) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    // 필터에 맞는 쿼리 생성
+    Query filteredQuery = questionFirebase.questionReference;
+    if (selectedFilters.isNotEmpty) {
+      filteredQuery = filteredQuery.where('category', whereIn: selectedFilters);
+    }
+
+    // DB에서 현재 받아온 마지막 데이터가 DB의 마지막 데이터인지 확인
+    if (lastDocument != null) {
+      // 데이터를 읽어올 시작 document를 lastDocument로 변경
+      filteredQuery = filteredQuery.startAfterDocument(lastDocument!);
+    }
+
+    // 데이터 수 제한
+    filteredQuery = filteredQuery.limit(pageSize);
+    // 가져온 query 데이터의 DocumentSnapshot() 저장
+    QuerySnapshot querySnapshot = await filteredQuery.get();
+    // snapshot을 통해 가져온 question 데이터들을 list로 저장
+    List<QueryDocumentSnapshot> newItems = querySnapshot.docs;
+
+    setState(() {
+      // type 맞춰서 기존 questions에 스크롤로 로딩할 때마다 가져온 query 데이터 추가
+      questions.addAll(newItems.map((doc) => Question.fromSnapshot(doc)).toList());
+      // 가져온 query 데이터가 비어있으면 null 저장, 아니라면 가져온 query 데이터의 마지막 값 저장
+      lastDocument = newItems.isNotEmpty ? newItems.last : null;
+
+      isLoading = false;
+      // 가져온 query 데이터의 크기가 한번에 가져올 데이터 수보다 작다면 마지막 페이지
+      if (newItems.length < pageSize) {
+        isLastPage = true;
+      }
+    });
+  }
+
+  // floating action button UI
+  FloatingActionButton buildFloating(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return DialogBase(
+              title: '자유게시판에 글을 작성하시겠습니까?',
+              actions: [
+                ButtonNo(
+                  name: '아니오',
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                ButtonYes(
+                  name: '예',
+                  onPressed: () async {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => OpenCreateScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+      backgroundColor: KEY_BLUE,
+      elevation: 0, // 그림자를 제거하기 위해 elevation을 0으로 설정
+      shape: CircleBorder(),
+      child: Icon(Icons.edit, color: WHITE),
     );
   }
 
@@ -516,7 +699,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                       Positioned.fill(
                         child: Align(
                           alignment: Alignment.center,
-                          child: Text('#' + question.category,
+                          child: Text(question.category,
                             style: TextStyle(
                               color: TEXT_GREY,
                               fontSize: 12,
