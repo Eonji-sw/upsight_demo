@@ -16,6 +16,7 @@ import 'package:intl/intl.dart';
 
 import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
+import '../../../providers/comment_firestore.dart';
 import '../../../router.dart';
 import '../../../widgets/null_answer.dart';
 import '../../../widgets/button_no.dart';
@@ -38,14 +39,13 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   QuestionFirebase questionFirebase = QuestionFirebase();
   AnswerFirebase answerFirebase = AnswerFirebase();
   UserFirebase userFirebase = UserFirebase();
+  CommentFirebase commentFirebase = CommentFirebase();
 
   // 전달받은 question, questionId, questionDoc 데이터 저장할 변수
   late Question questionData;
   late String questionId;
   late DocumentSnapshot questionDoc;
 
-  // 해당 question의 DocumentSnapshot 저장할 변수
-  QuerySnapshot? questionSnapshot;
   // 해당 question의 answer 데이터들의 DocumentSnapshot 저장할 변수
   QuerySnapshot? answerSnapshot;
 
@@ -121,27 +121,27 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
       //     preferredSize: Size.fromHeight(65),
       //     child: AppbarAction(title: '자유게시판', back: true, question: questionData, answer: answerSnapshot,),
       // ),
-        appBar: AppBar(
-          backgroundColor: WHITE,
-          centerTitle: true,
-          // 제목
-          title: Text('자유게시판',
-            style: TextStyle(
-              color: BLACK,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+      appBar: AppBar(
+        backgroundColor: WHITE,
+        centerTitle: true,
+        // 제목
+        title: Text('자유게시판',
+          style: TextStyle(
+            color: BLACK,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
           ),
-          // 뒤로가기
-          leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              color: BLACK,
-              icon: Icon(Icons.arrow_back_ios_new)),
-          // 더보기
-          actions: appbarActions(context),
         ),
+        // 뒤로가기
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            color: BLACK,
+            icon: Icon(Icons.arrow_back_ios_new)),
+        // 더보기
+        actions: appbarActions(context),
+      ),
       // body
       body: Column(
         children: [
@@ -295,7 +295,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                     // 댓글 목록이 null이 아닐 경우
                         : answerShow(),
                   ]
-                ),
+              ),
             ),
           ),
           Padding(
@@ -323,24 +323,24 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                   ),
                 ),
                 Positioned(
-                  left: 10,
-                  top: -5,
-                  child: Container(
-                    width: 300,
-                    child: TextFormField(
-                      controller: _commentTextEditController,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: '댓글을 입력해주세요.',
-                        hintStyle: TextStyle(
-                          color: TEXT_GREY,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
+                    left: 10,
+                    top: -5,
+                    child: Container(
+                      width: 300,
+                      child: TextFormField(
+                        controller: _commentTextEditController,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: '댓글을 입력해주세요.',
+                          hintStyle: TextStyle(
+                            color: TEXT_GREY,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
+                        textAlignVertical: TextAlignVertical.bottom,
                       ),
-                      textAlignVertical: TextAlignVertical.bottom,
-                    ),
-                  )
+                    )
                 ),
                 Positioned(
                   right: 0,
@@ -472,59 +472,59 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   // appbar 더보기
   List<Widget> appbarActions(BuildContext context) {
     return <Widget>[
-          new IconButton(
-            icon: new Icon(Icons.more_vert, color: BLACK,),
-            onPressed: () {
-              showModalBottomSheet(
-                  backgroundColor: WHITE,
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListtileSheet(name: '공유하기', color: BLACK, onTab: () {}),
-                        user == questionData.author ? ListtileSheet(name: '수정', color: BLACK,
-                            onTab: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (BuildContext context) =>
-                                      OpenModifyScreen(data: questionData, dataId: questionId),
-                                ),
+      new IconButton(
+        icon: new Icon(Icons.more_vert, color: BLACK,),
+        onPressed: () {
+          showModalBottomSheet(
+              backgroundColor: WHITE,
+              context: context,
+              builder: (BuildContext context) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListtileSheet(name: '공유하기', color: BLACK, onTab: () {}),
+                    user == questionData.author ? ListtileSheet(name: '수정', color: BLACK,
+                        onTab: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  OpenModifyScreen(data: questionData, dataId: questionId),
+                            ),
+                          );
+                        }
+                    ) : ListtileSheet(name: '신고', color: BLACK, onTab: () {}),
+                    user == questionData.author ? ListtileSheet(name: '삭제', color: ALERT_RED,
+                        onTab: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return DialogBase(
+                                title: '이 글을 삭제하시겠습니까?',
+                                actions: [
+                                  ButtonNo(
+                                    name: '아니오',
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  ButtonYes(
+                                    name: '예',
+                                    onPressed: () async {
+                                      await deleteQuestion(context);
+                                    },
+                                  ),
+                                ],
                               );
-                            }
-                        ) : ListtileSheet(name: '신고', color: BLACK, onTab: () {}),
-                        user == questionData.author ? ListtileSheet(name: '삭제', color: ALERT_RED,
-                            onTab: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return DialogBase(
-                                    title: '이 글을 삭제하시겠습니까?',
-                                    actions: [
-                                      ButtonNo(
-                                        name: '아니오',
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      ButtonYes(
-                                        name: '예',
-                                        onPressed: () async {
-                                          await deleteQuestion(context);
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            }) : ListtileSheet(name: '차단', color: BLACK, onTab: () {}),
-                      ],
-                    );
-                  }
-              );
-            },
-          )
-        ];
+                            },
+                          );
+                        }) : ListtileSheet(name: '차단', color: BLACK, onTab: () {}),
+                  ],
+                );
+              }
+          );
+        },
+      )
+    ];
   }
 
   // 댓글 삭제 함수
@@ -542,8 +542,9 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     if (snapshot.docs.isNotEmpty) {
       String documentId = snapshot.docs.first.id;
       await answerFirebase.answerReference.doc(documentId).delete();
-      // 게시물 list screen으로 전환
-      Navigator.pushNamed(context, boardRoute);
+      // 데이터를 다시 불러옴
+      fetchAnswer();
+      Navigator.pop(context);
     }
   }
 
@@ -580,7 +581,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     // 해당 게시글의 좋아요 유무를 반대로 바꿔줌
     if (snapshot.docs.isNotEmpty) {
       likeData = questionData.isLikeClicked;
-      String documentId = snapshot.docs.first.id;
       await questionFirebase.questionReference.doc(questionId).update({
         'isLikeClicked': !questionData.isLikeClicked
       });
