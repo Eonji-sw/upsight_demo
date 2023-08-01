@@ -403,7 +403,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
           ),
           // 검색창
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             child: TextFormField(
               // 검색창 controller
               controller: searchTextController,
@@ -424,17 +424,17 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                 ),
                 // 폼 필드의 기본 테두리
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.0),
+                  borderRadius: BorderRadius.circular(4.0),
                   borderSide: BorderSide(color: L_GREY,),
                 ),
                 // 폼 필드가 활성화되어 있을 때 적용되는 테두리
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.0),
+                  borderRadius: BorderRadius.circular(4.0),
                   borderSide: BorderSide(color: L_GREY,),
                 ),
                 // 폼 필드 위에 마우스가 올라왔을 때 적용되는 테두리
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.0),
+                  borderRadius: BorderRadius.circular(4.0),
                   borderSide: BorderSide(color: L_GREY,),
                 ),
               ),

@@ -2,6 +2,7 @@
 게시글(question) 수정하는 page
  */
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:board_project/providers/question_firestore.dart';
 
 import '../../../constants/colors.dart';
+import '../../../constants/list.dart';
 import '../../../constants/size.dart';
 import '../../../router.dart';
 import '../../../widgets/appbar_back.dart';
@@ -34,6 +36,10 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
   // firebase 객체 생성
   QuestionFirebase questionFirebase = QuestionFirebase();
 
+  String boardCategory = '';
+  int lastBoardIndex = COMMON_INIT_COUNT;
+  int lastCategoryIndex = COMMON_INIT_COUNT;
+
   // 전달받은 question, qeustionId 데이터 저장할 변수
   late Question questionData;
   late String questionId;
@@ -52,6 +58,9 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
     setState(() {
       // firebase 객체 초기화
       questionFirebase.initDb();
+      boardCategory = '자유게시판';
+      lastBoardIndex = BoardList.indexWhere((e) => e == boardCategory);
+      lastCategoryIndex = BoardFilterList.indexWhere((e) => e == questionData.category);
     });
   }
 
@@ -70,24 +79,106 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
           child: Column(
             children: [
               DividerBase(),
-              // 카테고리 입력
-              TextFormField(
-                decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: questionData.category,
-                    prefixText: '#',
-                    hintStyle: TextStyle(
-                      color: TEXT_GREY,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w300,
-                    )
-                ),
-                // category 값이 변경되었는지 확인하여 입력 받은 데이터 저장
-                onChanged: (value) {
-                  setState(() {
-                    questionData.category = value;
-                  });
+              // 게시판 & 카테고리 선택
+              CupertinoButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return SizedBox(
+                        height: 200,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: CupertinoPicker(
+                                itemExtent: 32,
+                                scrollController: FixedExtentScrollController(initialItem: lastBoardIndex),
+                                onSelectedItemChanged: (int index) {
+                                  Text(boardCategory,
+                                    style: TextStyle(
+                                      color: BLACK,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w300,
+                                    ),
+                                  );
+                                  setState(() {
+                                    lastBoardIndex = index;
+                                    boardCategory = BoardList[index];
+                                  },
+                                  );
+                                },
+                                children: List<Widget>.generate(
+                                  BoardList.length,
+                                      (int index) {
+                                    return Center(
+                                      child: Text(BoardList[index]),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: CupertinoPicker(
+                                itemExtent: 32,
+                                scrollController: FixedExtentScrollController(initialItem: lastCategoryIndex),
+                                onSelectedItemChanged: (int index) {
+                                  Text(questionData.category,
+                                    style: TextStyle(
+                                      color: BLACK,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w300,
+                                    ),
+                                  );
+                                  setState(() {
+                                    lastCategoryIndex = index;
+                                    questionData.category = BoardFilterList[index];
+                                  },
+                                  );
+                                },
+                                children: List<Widget>.generate(
+                                  BoardFilterList.length,
+                                      (int index) {
+                                    return Center(
+                                      child: Text(BoardFilterList[index]),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
                 },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(boardCategory,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                        color: BLACK,
+                      ),
+                    ),
+                    Container(
+                      width: 2,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: L_GREY,
+                      ),
+                      alignment: Alignment.center,
+                    ),
+                    Text(questionData.category,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                        color: BLACK,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               DividerBase(),
               // 제목 입력

@@ -3,6 +3,7 @@
  */
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:board_project/providers/user_firestore.dart';
 
 import '../../../constants/colors.dart';
+import '../../../constants/list.dart';
 import '../../../constants/size.dart';
 import '../../../router.dart';
 import '../../../widgets/appbar_back.dart';
@@ -43,6 +45,10 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   bool isLikeClicked = false;
   int answerCount = COMMON_INIT_COUNT;
 
+  String boardCategory = '';
+  int lastBoardIndex = COMMON_INIT_COUNT;
+  int lastCategoryIndex = COMMON_INIT_COUNT;
+
   // 게시글(question) 하나를 눌렀을 때 detail screen에 넘겨줄 해당 게시글의 documentId, documentSnapshot
   late String questionId;
   late DocumentSnapshot questionDoc;
@@ -61,6 +67,8 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
       // firebase 객체 초기화
       questionFirebase.initDb();
       userFirebase.initDb();
+      boardCategory = '자유게시판';
+      category = '글 주제 선택';
     });
     // user_id 값을 가져와서 user 변수에 할당
     fetchUser();
@@ -93,24 +101,106 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
           child: Column(
             children: [
               DividerBase(),
-              // 카테고리 입력
-              TextFormField(
-                decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: '카테고리를 입력해주세요.',
-                    prefixText: '#',
-                    hintStyle: TextStyle(
-                      color: TEXT_GREY,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w300,
-                    )
-                ),
-                // category 값이 작성되었는지 확인하여 입력 받은 데이터 저장
-                onChanged: (value) {
-                  setState(() {
-                    category = value;
-                  });
+              // 게시판 & 카테고리 선택
+              CupertinoButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return SizedBox(
+                        height: 200,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: CupertinoPicker(
+                                itemExtent: 32,
+                                scrollController: FixedExtentScrollController(initialItem: lastBoardIndex),
+                                onSelectedItemChanged: (int index) {
+                                  Text(boardCategory,
+                                    style: TextStyle(
+                                      color: BLACK,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w300,
+                                    ),
+                                  );
+                                  setState(() {
+                                    lastBoardIndex = index;
+                                    boardCategory = BoardList[index];
+                                  },
+                                  );
+                                },
+                                children: List<Widget>.generate(
+                                  BoardList.length,
+                                      (int index) {
+                                    return Center(
+                                      child: Text(BoardList[index]),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: CupertinoPicker(
+                                itemExtent: 32,
+                                scrollController: FixedExtentScrollController(initialItem: lastCategoryIndex),
+                                onSelectedItemChanged: (int index) {
+                                  Text('글 주제 선택',
+                                    style: TextStyle(
+                                      color: BLACK,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w300,
+                                    ),
+                                  );
+                                  setState(() {
+                                    lastCategoryIndex = index;
+                                    category = BoardFilterList[index];
+                                  },
+                                  );
+                                },
+                                children: List<Widget>.generate(
+                                  BoardFilterList.length,
+                                      (int index) {
+                                    return Center(
+                                      child: Text(BoardFilterList[index]),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
                 },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(boardCategory,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                        color: BLACK,
+                      ),
+                    ),
+                    Container(
+                      width: 2,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: L_GREY,
+                      ),
+                      alignment: Alignment.center,
+                    ),
+                    Text(category,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                        color: BLACK,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               DividerBase(),
               // 제목 입력
@@ -152,14 +242,14 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
                     child: Text('작성 완료',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) ? KEY_BLUE : TEXT_GREY,
+                        color: (title.isNotEmpty && content.isNotEmpty && category != '글 주제 선택') ? KEY_BLUE : TEXT_GREY,
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 onTap: () {
-                  (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) ? showDialog(
+                  (title.isNotEmpty && content.isNotEmpty && category != '글 주제 선택') ? showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return DialogBase(
@@ -193,7 +283,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   // 질문 생성 함수
   Future<void> createQuestion(BuildContext context) async {
     // 필수 필드가 작성되었는지 확인
-    if (title.isNotEmpty && content.isNotEmpty && category.isNotEmpty) {
+    if (title.isNotEmpty && content.isNotEmpty && category != '글 주제 선택') {
       // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 생성
       Question newQuestion = Question(
         title: title,
