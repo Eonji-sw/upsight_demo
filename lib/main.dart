@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'UpSight',
       theme: ThemeData(
-        fontFamily: 'Pretendard',
+        fontFamily: 'Pretendard Variable',
         scaffoldBackgroundColor: WHITE,
         colorScheme: ColorScheme.fromSeed(seedColor: KEY_BLUE),
         useMaterial3: true,

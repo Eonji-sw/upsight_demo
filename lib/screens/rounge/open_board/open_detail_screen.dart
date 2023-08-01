@@ -166,7 +166,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                           Positioned.fill(
                             child: Align(
                               alignment: Alignment.center,
-                              child: Text('#' + questionData.category!,
+                              child: Text(questionData.category,
                                 style: TextStyle(
                                   color: TEXT_GREY,
                                   fontSize: 12,
