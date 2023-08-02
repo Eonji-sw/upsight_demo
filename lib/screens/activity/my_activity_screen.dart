@@ -3,8 +3,10 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../constants/colors.dart';
+import '../login_secure.dart';
 
 class MyActivityScreen extends StatefulWidget {
   @override
@@ -14,6 +16,8 @@ class MyActivityScreen extends StatefulWidget {
 class _MyActivityScreenState extends State<MyActivityScreen> {
   @override
   Widget build(BuildContext context) {
+    final authClient =
+    Provider.of<FirebaseAuthProvider>(context, listen: false);
     return Column(
       children: [
         SizedBox(height: 25,),
@@ -354,6 +358,35 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
 
                   },
                 ),
+                Divider(thickness: 1,),
+                ListTile(
+                  title: Row(
+                    children: [
+                      Icon(Icons.logout_outlined),
+                      SizedBox(width: 10,),
+                      Text(
+                        '로그아웃',
+                        style: TextStyle(
+                          color: D_GREY,
+                          fontSize: 16,
+                          fontFamily: 'Pretendard Variable',
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () async {
+                    await authClient.signOut();
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(
+                        SnackBar(content: Text('로그아웃 되었습니다.')),
+                      );
+                    final auth = Provider.of<FirebaseAuthProvider>(context, listen: false);
+                    if(auth.user == null) Navigator.of(context).pushNamedAndRemoveUntil("/login", (route) => false);
+                  },
+                ),
+
               ],
             ),
           ),

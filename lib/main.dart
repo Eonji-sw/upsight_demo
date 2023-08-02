@@ -2,8 +2,10 @@ import 'package:board_project/router.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
 import 'constants/colors.dart';
 import 'firebase_options.dart';
+import 'package:board_project/screens/login_secure.dart';
 
 void main() async {
   // calendar 한국어 설정을 위한 코드
@@ -23,17 +25,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'UpSight',
-      theme: ThemeData(
-        fontFamily: 'Pretendard Variable',
-        scaffoldBackgroundColor: WHITE,
-        colorScheme: ColorScheme.fromSeed(seedColor: KEY_BLUE),
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context)=> FirebaseAuthProvider()),
+      ],
+      child: MaterialApp(
+        title: 'UpSight',
+        theme: ThemeData(
+          fontFamily: 'Pretendard Variable',
+          scaffoldBackgroundColor: WHITE,
+
+          colorScheme: ColorScheme.fromSeed(seedColor: KEY_BLUE),
+          useMaterial3: true,
+        ),
+        // Route를 관리하는 함수를 설정
+        onGenerateRoute: generateRoute,
+        initialRoute: authRoute, // 앱을 처음 시작할 때 표시할 첫 페이지 설정
       ),
-      // Route를 관리하는 함수를 설정
-      onGenerateRoute: generateRoute,
-      initialRoute: authRoute, // 앱을 처음 시작할 때 표시할 첫 페이지 설정
     );
   }
 }
