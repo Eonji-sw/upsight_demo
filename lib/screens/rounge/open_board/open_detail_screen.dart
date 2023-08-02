@@ -16,6 +16,7 @@ import 'package:intl/intl.dart';
 
 import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
+import '../../../models/comment.dart';
 import '../../../providers/comment_firestore.dart';
 import '../../../router.dart';
 import '../../../widgets/appbar_action.dart';
@@ -47,8 +48,17 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   late String questionId;
   late DocumentSnapshot questionDoc;
 
+  // 대댓글에 쓰일 answerId 생성
+  late String answerId;
+  // answer 데이터 저장할 변수
+  late Answer answerData;
+
+  // 해당 question 데이터들의 DocumentSnapshot 저장할 변수
+  QuerySnapshot? questionSnapshot;
   // 해당 question의 answer 데이터들의 DocumentSnapshot 저장할 변수
   QuerySnapshot? answerSnapshot;
+  // 해당 answer의 comment 데이터들의 DocumentSnapshot 저장할 변수
+  QuerySnapshot? commentSnapshot;
 
   // 현재 로그인한 사용자 name
   late String user;
@@ -57,7 +67,9 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   bool likeData = false;
 
   // 댓글 입력할 TextEditingController 선언
-  final _commentTextEditController = TextEditingController();
+  final _answerTextEditController = TextEditingController();
+  // 댓글/대댓글 입력창 상태 나타내는 변수
+  bool isReplying = false;
 
   // 해당 게시글(question)의 댓글 목록 길이 초기화
   int answersNullLen = COMMON_INIT_COUNT;
@@ -75,11 +87,29 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
       questionFirebase.initDb();
       answerFirebase.initDb();
       userFirebase.initDb();
+      commentFirebase.initDb();
     });
+    // 해당 question 데이터의 snapshot 저장
+    fetchQuestionData();
     // 해당 answer 데이터의 snapshot 저장
     fetchAnswer();
     // user_id 값을 가져와서 user 변수에 할당
     fetchUser();
+  }
+
+  // 해당 question 데이터의 snapshot 저장하는 함수
+  Future<void> fetchQuestionData() async {
+    // 해당 question의 answer 데이터의 DocumentSnapshot() 찾아서 저장
+    final querySnapshot = await questionFirebase.questionReference
+        .where('title', isEqualTo: questionData.title)
+        .where('content', isEqualTo: questionData.content)
+        .where('author', isEqualTo: questionData.author)
+        .where('create_date', isEqualTo: questionData.create_date)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      questionSnapshot = querySnapshot;
+    }
   }
 
   // 해당 question의 answer 데이터의 snapshot 저장하는 함수
@@ -109,7 +139,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   @override
   void dispose() {
     // 댓글 입력하는 TextEditingController 제거
-    _commentTextEditController.dispose();
+    _answerTextEditController.dispose();
     super.dispose();
   }
 
@@ -117,6 +147,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // appBar
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(65),
         child: AppbarAction(title: '자유게시판', actions: appbarActions(context),)
@@ -235,8 +266,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                             // 댓글
                             Icon(Icons.messenger_outline, color: TEXT_GREY, size: 18,),
                             SizedBox(width: 4,),
-                            Text(
-                              '댓글 ${(questionDoc.data() as Map<String, dynamic>)['answerCount'].toString()}',
+                            Text('댓글 ${(questionDoc.data() as Map<String, dynamic>)['answerCount'].toString()}',
                               style: TextStyle(
                                 color: TEXT_GREY,
                                 fontSize: 14,
@@ -252,8 +282,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                         children: [
                           Icon(Icons.visibility_outlined, color: TEXT_GREY, size: 18),
                           SizedBox(width: 4,),
-                          Text(
-                            '조회 ${(questionDoc.data() as Map<String, dynamic>)['views_count'].toString()}',
+                          Text('조회 ${(questionDoc.data() as Map<String, dynamic>)['views_count'].toString()}',
                             style: TextStyle(
                               color: TEXT_GREY,
                               fontSize: 14,
@@ -307,7 +336,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                     child: Container(
                       width: 300,
                       child: TextFormField(
-                        controller: _commentTextEditController,
+                        controller: _answerTextEditController,
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: '댓글을 입력해주세요.',
@@ -328,8 +357,8 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                     icon: Icon(Icons.send, color: TEXT_GREY,),
                     onPressed: () {
                       // 입력받은 answer 데이터
-                      String commentText = _commentTextEditController.text;
-                      if (commentText.trim().isEmpty) {
+                      String answerText = _answerTextEditController.text;
+                      if (answerText.trim().isEmpty) {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
@@ -348,7 +377,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                           },
                         );
                       } else {
-                        createAnswer(commentText);
+                        isReplying ? createComment(answerText) : createAnswer(answerText);
                       }
                     },
                   ),
@@ -358,6 +387,118 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // 대댓글 목록 보여주는 화면
+  Widget commentShow(String answerId) {
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    print(answerId);
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    return StreamBuilder<QuerySnapshot>(
+      stream: commentFirebase.getCommentsByAnswer(answerId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(); // 대기 중일 때 로딩 인디케이터 표시
+        }
+        if (snapshot.hasData && snapshot.data!.docs.length > 0) {
+          // 대댓글이 있을 경우 리스트뷰로 표시
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (BuildContext context, int index) {
+              // comment의 데이터 저장
+              List<DocumentSnapshot> sortedDocs = snapshot.data!.docs;
+              // comment 데이터들을 최신순으로 sort
+              sortedDocs.sort((a, b) {
+                return a['create_date'].compareTo(b['create_date']);
+              });
+              // 현재 comment data
+              DocumentSnapshot commentData = sortedDocs[index];
+
+              return Container(
+                color: SUB_BLUE,
+                child: Column(
+                  children: [
+                    ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity(vertical: -4),
+                        contentPadding: EdgeInsets.only(left: 15, top: 10),
+                        leading: Image.asset('assets/images/profile.png', width: 32.67),
+                        title: Row(
+                          children: [
+                            // 작성자
+                            Text(commentData['author'],
+                              style: TextStyle(
+                                color: BLACK,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),),
+                            Padding(
+                              padding: EdgeInsets.only(left: 5, right: 5),
+                              child: Image.asset('assets/images/dot.png', width: 2),
+                            ),
+                            // 작성일
+                            Text(commentData['create_date'],
+                              style: TextStyle(
+                                color: TEXT_GREY,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),),
+                          ],
+                        ),
+                        trailing:
+                        // 삭제 버튼
+                        IconButton(
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return DialogBase(
+                                    title: '선택하신 대댓글을 삭제하시겠습니까?',
+                                    actions: [
+                                      ButtonNo(
+                                        name: '아니오',
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      ButtonYes(
+                                          name: '예',
+                                          onPressed: () async {
+                                            await commentFirebase.commentReference.doc(commentData.reference.id).delete();
+                                            Navigator.pop(context);
+                                          }
+                                      ),
+                                    ],
+                                  );
+                                });
+                          },
+                          icon: Icon(Icons.delete, color: BLACK, size: 15,),
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(),
+                        )
+                    ),
+                    // 내용
+                    Padding(
+                      padding: EdgeInsets.only(left: 63, right: 18, bottom: 10),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(commentData['content']),
+                      ),
+                    ),
+                    DividerSheet(),
+                  ],
+                )
+              );
+            },
+          );
+        } else {
+          // 대댓글이 없을 경우 '대댓글 없음' 메시지를 표시
+          return SizedBox();
+        }
+      },
     );
   }
 
@@ -376,6 +517,8 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
           });
           // 현재 answer data
           DocumentSnapshot answerData = sortedDocs[index];
+          // 현재 answer referenceId 저장
+          answerId = answerData.reference.id;
 
           return Column(
             children: [
@@ -406,32 +549,69 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                       ),),
                   ],
                 ),
-                // 삭제 버튼
-                trailing: IconButton(
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return DialogBase(
-                            title: '선택하신 댓글을 삭제하시겠습니까?',
-                            actions: [
-                              ButtonNo(
-                                name: '아니오',
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              ButtonYes(
-                                  name: '예',
-                                  onPressed: () async {
-                                    await deleteAnswer(answerData, context);
-                                  }
-                              ),
-                            ],
-                          );
-                        });
-                  },
-                  icon: Icon(Icons.delete, color: BLACK, size: 15,),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 대댓글 추가 버튼
+                    IconButton(
+                      onPressed: () async {
+                        print('0000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+                        QuerySnapshot snapshot = await answerFirebase.answerReference
+                            .where('content', isEqualTo: answerData['content'])
+                            .where('author', isEqualTo: answerData['author'])
+                            .where('create_date', isEqualTo: answerData['create_date'])
+                            .where('question', isEqualTo: answerData['question'])
+                            .get();
+
+                        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+                        print(snapshot.docs.first.id);
+                        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+
+                        if (snapshot.docs.isNotEmpty) {
+                          late DocumentSnapshot answerDoc = snapshot.docs.first;
+                          answerId = answerDoc.id;
+
+                          isReplying = true;
+
+                          print('?????????????????????????????????????????????????????????????????????????????????????????');
+                          print(answerId);
+                          print('?????????????????????????????????????????????????????????????????????????????????????????');
+                        }
+                      },
+                      icon: Icon(Icons.add, color: BLACK, size: 15,),
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(),
+                    ),
+                    // 삭제 버튼
+                    IconButton(
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return DialogBase(
+                                title: '선택하신 댓글을 삭제하시겠습니까?',
+                                actions: [
+                                  ButtonNo(
+                                    name: '아니오',
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  ButtonYes(
+                                      name: '예',
+                                      onPressed: () async {
+                                        await deleteAnswer(answerData, context);
+                                      }
+                                  ),
+                                ],
+                              );
+                            });
+                      },
+                      icon: Icon(Icons.delete, color: BLACK, size: 15,),
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(),
+                    )
+                  ],
                 ),
               ),
               // 내용
@@ -443,9 +623,25 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                 ),
               ),
               DividerSheet(),
+              commentShow(answerId),
             ],
           );
         });
+  }
+
+  // 대댓글 생성 함수
+  void createComment(String commentText) async {
+    // 입력받은 데이터로 새로운 answer 데이터 생성하여 DB에 생성
+    Comment newComment = Comment(
+      answer: answerId,
+      content: commentText,
+      author: user,
+      create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
+    );
+    await commentFirebase.addComment(newComment);
+    // 대댓글 입력창 초기화
+    _answerTextEditController.clear();
+    fetchQuestionData();
   }
 
   // appbar 더보기
@@ -521,6 +717,15 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     if (snapshot.docs.isNotEmpty) {
       String documentId = snapshot.docs.first.id;
       await answerFirebase.answerReference.doc(documentId).delete();
+
+      commentSnapshot = await commentFirebase.commentReference
+          .where('answer', isEqualTo: documentId)
+          .get();
+
+      // 해당 answer의 comment 데이터 삭제
+      for (int i = 0; i < commentSnapshot!.docs.length; i++) {
+        await commentFirebase.commentReference.doc(commentSnapshot!.docs[i].id).delete();
+      }
       // 데이터를 다시 불러옴
       fetchAnswer();
       Navigator.pop(context);
@@ -528,11 +733,11 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   }
 
   // 댓글 생성 함수
-  void createAnswer(String commentText) {
+  createAnswer(String answerText) {
     // 입력받은 데이터로 새로운 answer 데이터 생성하여 DB에 생성
     Answer newAnswer = Answer(
       question: questionId,
-      content: commentText,
+      content: answerText,
       author: user,
       create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
     );
@@ -544,7 +749,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     });
 
     // 댓글 입력창 초기화
-    _commentTextEditController.clear();
+    _answerTextEditController.clear();
     // 데이터를 다시 불러옴
     fetchAnswer();
   }
