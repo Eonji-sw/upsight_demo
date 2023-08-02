@@ -80,10 +80,9 @@ class _QnaBoardScreenState extends State<QnaBoardScreen> {
                       children: [
                         InkWell(
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => QnaBoardScreen()),
-                            );
+                            Navigator.push(context, MaterialPageRoute(builder: (context) {
+                              return QnaBoardScreen();
+                            }));
                           },
                           child: Text('질문하기',
                             style: TextStyle(

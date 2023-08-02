@@ -337,10 +337,9 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                   children: [
                     InkWell(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => OpenBoardScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) {
+                          return OpenBoardScreen();
+                        }));
                       },
                       child: Text('자유게시판',
                         style: TextStyle(
@@ -371,10 +370,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                     children: [
                       InkWell(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => QnaBoardScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => QnaBoardScreen()),);
                         },
                         child: Text('질문하기',
                           style: TextStyle(
@@ -636,40 +632,48 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   }
 
   // floating action button UI
-  FloatingActionButton buildFloating(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return DialogBase(
-              title: '자유게시판에 글을 작성하시겠습니까?',
-              actions: [
-                ButtonNo(
-                  name: '아니오',
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                ButtonYes(
-                  name: '예',
-                  onPressed: () async {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (BuildContext context) => OpenCreateScreen(),
+  Stack buildFloating(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          bottom: kBottomNavigationBarHeight, // 아래쪽 여백
+          right: 0, // 오른쪽 여백
+          child: FloatingActionButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return DialogBase(
+                    title: '자유게시판에 글을 작성하시겠습니까?',
+                    actions: [
+                      ButtonNo(
+                        name: '아니오',
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
                       ),
-                    );
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-      backgroundColor: KEY_BLUE,
-      elevation: 0, // 그림자를 제거하기 위해 elevation을 0으로 설정
-      shape: CircleBorder(),
-      child: Icon(Icons.edit, color: WHITE),
+                      ButtonYes(
+                        name: '예',
+                        onPressed: () async {
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(
+                              builder: (BuildContext context) => OpenCreateScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            backgroundColor: KEY_BLUE,
+            elevation: 0, // 그림자를 제거하기 위해 elevation을 0으로 설정
+            shape: CircleBorder(),
+            child: Icon(Icons.edit, color: WHITE),
+          ),
+        ),
+      ],
     );
   }
 
@@ -814,7 +818,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
             // 게시글 중 하나를 눌렀을 경우 해당 게시글의 조회수 증가
             await increaseViewsCount(question);
             // 게시글의 상세화면을 보여주는 detail screen으로 화면 전환
-            await Navigator.of(context).push(
+            await Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute(
                   builder: (BuildContext context) =>
                       OpenDetailScreen(data: question, dataId: questionId, dataDoc: questionDoc)),

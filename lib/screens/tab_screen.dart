@@ -3,10 +3,10 @@ import 'package:board_project/screens/calendar_screen.dart';
 import 'package:board_project/screens/home_screen.dart';
 import 'package:board_project/screens/rounge/open_board/open_board_screen.dart';
 import 'package:board_project/screens/space/building_board_screen.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/colors.dart';
-import '../constants/size.dart';
 
 class TabScreen extends StatefulWidget {
   @override
@@ -14,8 +14,6 @@ class TabScreen extends StatefulWidget {
 }
 
 class _TabScreenState extends State<TabScreen> {
-  int _selectedPageIndex = COMMON_INIT_COUNT;
-
   List _pages = [
     HomeScreen(),
     OpenBoardScreen(),
@@ -23,31 +21,55 @@ class _TabScreenState extends State<TabScreen> {
     CalendarScreen(),
     MyActivityScreen(),
   ];
-  
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(child: _pages[_selectedPageIndex],),
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: _onItemTapped,
-        currentIndex: _selectedPageIndex,
-        fixedColor: KEY_BLUE,
-        unselectedItemColor: TEXT_GREY,
-        type: BottomNavigationBarType.fixed,
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: '홈'),
-          BottomNavigationBarItem(icon: Icon(Icons.forum), label: '라운지'),
-          BottomNavigationBarItem(icon: Icon(Icons.layers), label:'공간기록'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '캘린더'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: '내 활동'),
-        ],
-      ),
+    return CupertinoTabScaffold(
+        tabBar: CupertinoTabBar(
+            activeColor: KEY_BLUE,
+            items: <BottomNavigationBarItem> [
+              BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: '홈'),
+              BottomNavigationBarItem(icon: Icon(Icons.forum), label: '라운지'),
+              BottomNavigationBarItem(icon: Icon(Icons.layers), label:'공간기록'),
+              BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '캘린더'),
+              BottomNavigationBarItem(icon: Icon(Icons.person), label: '내 활동'),
+            ]
+        ),
+        tabBuilder: (context, index) {
+          switch (index) {
+            case 0:
+              return CupertinoTabView(
+                builder: (context) {
+                  return CupertinoPageScaffold(child: _pages[index]);
+                },
+              );
+            case 1:
+              return CupertinoTabView(
+                builder: (context) {
+                  return CupertinoPageScaffold(child: _pages[index]);
+                },
+              );
+            case 2:
+              return CupertinoTabView(
+                builder: (context) {
+                  return CupertinoPageScaffold(child: _pages[index]);
+                },
+              );
+            case 3:
+              return CupertinoTabView(
+                builder: (context) {
+                  return CupertinoPageScaffold(child: _pages[index]);
+                },
+              );
+            case 4:
+              return CupertinoTabView(
+                builder: (context) {
+                  return CupertinoPageScaffold(child: _pages[index]);
+                },
+              );
+          }
+          return Container();
+        }
     );
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedPageIndex = index;
-    });
   }
 }
