@@ -18,6 +18,7 @@ import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
 import '../../../providers/comment_firestore.dart';
 import '../../../router.dart';
+import '../../../widgets/appbar_action.dart';
 import '../../../widgets/null_answer.dart';
 import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
@@ -116,31 +117,9 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar
-      // appBar: PreferredSize(
-      //     preferredSize: Size.fromHeight(65),
-      //     child: AppbarAction(title: '자유게시판', back: true, question: questionData, answer: answerSnapshot,),
-      // ),
-      appBar: AppBar(
-        backgroundColor: WHITE,
-        centerTitle: true,
-        // 제목
-        title: Text('자유게시판',
-          style: TextStyle(
-            color: BLACK,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        // 뒤로가기
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            color: BLACK,
-            icon: Icon(Icons.arrow_back_ios_new)),
-        // 더보기
-        actions: appbarActions(context),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(65),
+        child: AppbarAction(title: '자유게시판', actions: appbarActions(context),)
       ),
       // body
       body: Column(
