@@ -20,6 +20,7 @@ import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
 import '../../../widgets/dialog_base.dart';
 import '../../../widgets/divider_board.dart';
+import '../../../widgets/null_search.dart';
 import '../../../widgets/sheet_base.dart';
 import '../qna_board/qna_board_screen.dart';
 
@@ -259,25 +260,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
 
           // 검색된 결과가 없을 경우
           if(searchBoardResult.isEmpty) {
-            return Container(
-              child: Center(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: <Widget>[
-                    Icon(Icons.sentiment_dissatisfied_outlined, size: 50,),
-                    Text(
-                      '해당 게시글이 없어요',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: BLACK,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 20
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            );
+            return NullSearch();
           } else {
             if (selectedFilters.isNotEmpty) {
               // 검색 결과를 선택한 필터에 맞게 필터링
