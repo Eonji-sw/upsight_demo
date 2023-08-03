@@ -17,4 +17,5 @@ class UserFirebase {
       return User.fromSnapshot(document);
     }).toList();
   }
+
 }

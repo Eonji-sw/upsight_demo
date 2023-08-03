@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:board_project/screens/login_secure.dart';
 import 'package:provider/provider.dart';
-import 'package:board_project/screens/model_login.dart';
+import 'package:board_project/models/model_login.dart';
 class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class LoginScreen extends StatelessWidget {
               padding: EdgeInsets.all(8.0),
               child: Divider(thickness: 1),
             ),
-            RegisterButton(),
+          AccountButtons(),
           ],
         ),
       ),
@@ -28,6 +28,32 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
+//하단 회원가입 및 비번 변경 버튼 부분
+class AccountButtons extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 1,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: RegisterButton(),
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: ResetPasswordButton(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+//이메일 입력칸
 class EmailInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -47,6 +73,7 @@ class EmailInput extends StatelessWidget {
   }
 }
 
+//비번 입력칸
 class PasswordInput extends StatelessWidget {
   const PasswordInput({super.key});
 
@@ -68,6 +95,7 @@ class PasswordInput extends StatelessWidget {
   }
 }
 
+//로그인 버튼
 class LoginButton extends StatelessWidget {
   const LoginButton({super.key});
 
@@ -115,6 +143,7 @@ class LoginButton extends StatelessWidget {
   }
 }
 
+//회원가입 버튼
 class RegisterButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -124,7 +153,24 @@ class RegisterButton extends StatelessWidget {
         Navigator.of(context).pushNamed('/register');
       },
       child: Text(
-        '이메일로 간단하게 회원가입 하기',
+        '회원가입',
+        style: TextStyle(color: theme.primaryColor),
+      ),
+    );
+  }
+}
+
+//비번 초기화 버튼
+class ResetPasswordButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextButton(
+      onPressed: () {
+        Navigator.of(context).pushNamed('/reset_password');
+      },
+      child: Text(
+        '비밀번호를 잊으셨나요?',
         style: TextStyle(color: theme.primaryColor),
       ),
     );

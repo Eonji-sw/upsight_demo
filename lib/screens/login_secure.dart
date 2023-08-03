@@ -9,6 +9,8 @@ enum AuthStatus {
   registerFail,
   loginSuccess,
   loginFail,
+  resetSuccess,
+  resetFail,
 }
 
 class FirebaseAuthProvider with ChangeNotifier{
@@ -24,12 +26,12 @@ class FirebaseAuthProvider with ChangeNotifier{
         password: pw,
       );
       logger.d(credential);
+      return AuthStatus.registerSuccess;
 
     } on FirebaseAuthException catch (e) {
       logger.d(e.code);
       return AuthStatus.registerFail;
     }
-    return AuthStatus.registerSuccess;
   }
 
   /// 로그인
@@ -73,7 +75,7 @@ class FirebaseAuthProvider with ChangeNotifier{
     notifyListeners();
   }
 
-  /// 회원가입, 로그인시 사용자 영속
+  /// 회원가입, 로그인시 사용자 영속 -> 수정해야함
   void authPersistence() async {
     await authClient.setPersistence(Persistence.LOCAL);
   }
@@ -111,10 +113,11 @@ class FirebaseAuthProvider with ChangeNotifier{
         'emailVerified': emailVerified,
         'uid': uid,
       };
+    }else {
+      logger.d("사용자가 없습니다");
+      return null;
     }
-    return null;
   }
-
 
   /// 공급자로부터 유저 정보 조회
   User? getUserFromSocial() {
@@ -149,9 +152,41 @@ class FirebaseAuthProvider with ChangeNotifier{
   }
 
   /// 비밀번호 초기화 메일보내기
-  Future<void> sendPasswordResetEmail(String email) async {
+  Future<AuthStatus> sendPasswordResetEmail(String email) async {
     await FirebaseAuth.instance.setLanguageCode("kr");
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      return AuthStatus.resetSuccess;
+    }catch (e) {
+      logger.e('Failed to update password: $e');
+      return AuthStatus.resetFail; // Password update failed
+    }
   }
+
+  /// 비밀번호 변경  -> 이미 로그인 되어있는 사용자만 이용 가능
+  Future<bool> setPassword(String newPassword) async {
+    try {
+      await user?.updatePassword(newPassword);
+      return true; // Password update successful
+    } catch (e) {
+      logger.e('Failed to update password: $e');
+      return false; // Password update failed
+    }
+  }
+
+
+
+
+/*  Future<void> findUserEmail(String email) async {
+    authClient.fetchProvidersForEmail(email)
+        .then(providers => {
+    if (providers.length === 0) {
+    // this email hasn't signed up yet
+    } else {
+    // has signed up
+    }
+    });
+  }*/
+
 
 }
