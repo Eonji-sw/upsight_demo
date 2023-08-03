@@ -553,7 +553,17 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
               },
             ),
           ),
-          DividerBase(),
+          Container(
+            width: 384,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                  colors: [Color(0xFFFFC0CB), Color(0xFF87CEFA)],
+                  begin: Alignment.bottomLeft,
+                  end: Alignment.topRight
+              ),
+            ),
+          ),
           // 게시글 리스트
           Expanded(
               child: searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters)
