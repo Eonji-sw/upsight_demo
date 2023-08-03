@@ -17,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final auth = Provider.of<FirebaseAuthProvider>(context, listen: false);
     bool isLogin=false;
     final user=auth.user;
-    logger.d("[*] 로그인 상태 : $user");
+    logger.d("로그인 상태 : $user");
 
     if (user!=null) {
       isLogin=true;
