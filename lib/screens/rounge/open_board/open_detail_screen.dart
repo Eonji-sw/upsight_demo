@@ -392,9 +392,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
 
   // 대댓글 목록 보여주는 화면
   Widget commentShow(String answerId) {
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    print(answerId);
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     return StreamBuilder<QuerySnapshot>(
       stream: commentFirebase.getCommentsByAnswer(answerId),
       builder: (context, snapshot) {
@@ -418,79 +415,103 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
               DocumentSnapshot commentData = sortedDocs[index];
 
               return Container(
-                color: SUB_BLUE,
-                child: Column(
-                  children: [
-                    ListTile(
-                        dense: true,
-                        visualDensity: VisualDensity(vertical: -4),
-                        contentPadding: EdgeInsets.only(left: 15, top: 10),
-                        leading: Image.asset('assets/images/profile.png', width: 32.67),
-                        title: Row(
-                          children: [
-                            // 작성자
-                            Text(commentData['author'],
-                              style: TextStyle(
-                                color: BLACK,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                              ),),
-                            Padding(
-                              padding: EdgeInsets.only(left: 5, right: 5),
-                              child: Image.asset('assets/images/dot.png', width: 2),
-                            ),
-                            // 작성일
-                            Text(commentData['create_date'],
-                              style: TextStyle(
-                                color: TEXT_GREY,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                              ),),
-                          ],
-                        ),
-                        trailing:
-                        // 삭제 버튼
-                        IconButton(
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return DialogBase(
-                                    title: '선택하신 대댓글을 삭제하시겠습니까?',
-                                    actions: [
-                                      ButtonNo(
-                                        name: '아니오',
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      ButtonYes(
-                                          name: '예',
-                                          onPressed: () async {
-                                            await commentFirebase.commentReference.doc(commentData.reference.id).delete();
-                                            Navigator.pop(context);
-                                          }
-                                      ),
-                                    ],
-                                  );
-                                });
-                          },
-                          icon: Icon(Icons.delete, color: BLACK, size: 15,),
-                          padding: EdgeInsets.zero,
-                          constraints: BoxConstraints(),
+                color: L_GREY,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 10, bottom: 10, left: 25, right: 10),
+                  child: Container(
+                    decoration: ShapeDecoration(
+                        color: WHITE,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4),
                         )
                     ),
-                    // 내용
-                    Padding(
-                      padding: EdgeInsets.only(left: 63, right: 18, bottom: 10),
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text(commentData['content']),
-                      ),
-                    ),
-                    DividerSheet(),
-                  ],
-                )
+                    child: Column(
+                      children: [
+                        ListTile(
+                            dense: true,
+                            visualDensity: VisualDensity(vertical: -4),
+                            contentPadding: EdgeInsets.only(left: 5, top: 10),
+                            leading: Image.asset('assets/images/profile.png', width: 32.67),
+                            title: Row(
+                              children: [
+                                // 작성자
+                                Text(commentData['author'],
+                                  style: TextStyle(
+                                    color: BLACK,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                  ),),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 5, right: 5),
+                                  child: Image.asset('assets/images/dot.png', width: 2),
+                                ),
+                                // 작성일
+                                Text(commentData['create_date'],
+                                  style: TextStyle(
+                                    color: TEXT_GREY,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                  ),),
+                              ],
+                            ),
+                            // 삭제 버튼
+                            trailing:IconButton(
+                              icon: Icon(Icons.more_vert, color: BLACK,),
+                              onPressed: () {
+                                showModalBottomSheet(
+                                    backgroundColor: WHITE,
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          user == commentData['author'] ? ListtileSheet(name: '수정', color: BLACK, onTab: () {})
+                                              : ListtileSheet(name: '신고', color: BLACK, onTab: () {}),
+                                          user == commentData['author'] ? ListtileSheet(name: '삭제', color: ALERT_RED,
+                                              onTab: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return DialogBase(
+                                                      title: '선택하신 대댓글을 삭제하시겠습니까?',
+                                                      actions: [
+                                                        ButtonNo(
+                                                          name: '아니오',
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                          },
+                                                        ),
+                                                        ButtonYes(
+                                                            name: '예',
+                                                            onPressed: () async {
+                                                              await commentFirebase.commentReference.doc(commentData.reference.id).delete();
+                                                              Navigator.pop(context);
+                                                            }
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              }) : ListtileSheet(name: '차단', color: BLACK, onTab: () {}),
+                                        ],
+                                      );
+                                    }
+                                );
+                              },
+                            )
+                        ),
+                        // 내용
+                        Padding(
+                          padding: EdgeInsets.only(left: 63, right: 18, bottom: 10),
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: Text(commentData['content']),
+                          ),
+                        ),
+                        DividerSheet(),
+                      ],
+                    )
+                  ),
+                ),
               );
             },
           );
@@ -525,7 +546,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
               ListTile(
                 dense: true,
                 visualDensity: VisualDensity(vertical: -4),
-                contentPadding: EdgeInsets.only(left: 15, top: 10),
+                contentPadding: EdgeInsets.only(left: 3, top: 10),
                 leading: Image.asset('assets/images/profile.png', width: 32.67),
                 title: Row(
                   children: [
@@ -537,7 +558,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                         fontWeight: FontWeight.w400,
                       ),),
                     Padding(
-                      padding: EdgeInsets.only(left: 5, right: 5),
+                      padding: EdgeInsets.only(left: 10, right: 5),
                       child: Image.asset('assets/images/dot.png', width: 2),
                     ),
                     // 작성일
@@ -549,13 +570,89 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                       ),),
                   ],
                 ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+                // 삭제 버튼
+                trailing: IconButton(
+                  icon: Icon(Icons.more_vert, color: BLACK,),
+                  onPressed: () {
+                    showModalBottomSheet(
+                        backgroundColor: WHITE,
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              user == answerData['author'] ? ListtileSheet(name: '수정', color: BLACK, onTab: () {})
+                                  : ListtileSheet(name: '신고', color: BLACK, onTab: () {}),
+                              user == answerData['author'] ? ListtileSheet(name: '삭제', color: ALERT_RED,
+                                  onTab: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return DialogBase(
+                                          title: '선택하신 댓글을 삭제하시겠습니까?',
+                                          actions: [
+                                            ButtonNo(
+                                              name: '아니오',
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            ButtonYes(
+                                              name: '예',
+                                                onPressed: () async {
+                                                  await deleteAnswer(answerData, context);
+                                                }
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  }) : ListtileSheet(name: '차단', color: BLACK, onTab: () {}),
+                            ],
+                          );
+                        }
+                    );
+                  },
+                )
+              ),
+              // 내용
+              Padding(
+                padding: EdgeInsets.only(left: 63, right: 18),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(answerData['content']),
+                ),
+              ),
+              // 답글 버튼
+              Padding(
+                padding: EdgeInsets.only(right: 15,),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // 대댓글 추가 버튼
-                    IconButton(
+                    ElevatedButton.icon(
+                      onPressed: () async {},
+                      icon: Icon(Icons.favorite_border, size: 15 ,color: TEXT_GREY,),
+                      label: Text("좋아요",
+                        style: TextStyle(
+                          color: TEXT_GREY,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.transparent,
+                        elevation: 0,
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size(60, 22),
+                        shape: RoundedRectangleBorder(
+                            side: BorderSide(width: 0.50, color: L_GREY),
+                            borderRadius: BorderRadius.circular(4)
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10,),
+                    ElevatedButton.icon(
                       onPressed: () async {
-                        print('0000000000000000000000000000000000000000000000000000000000000000000000000000000000');
                         QuerySnapshot snapshot = await answerFirebase.answerReference
                             .where('content', isEqualTo: answerData['content'])
                             .where('author', isEqualTo: answerData['author'])
@@ -563,63 +660,33 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                             .where('question', isEqualTo: answerData['question'])
                             .get();
 
-                        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-                        print(snapshot.docs.first.id);
-                        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-
                         if (snapshot.docs.isNotEmpty) {
                           late DocumentSnapshot answerDoc = snapshot.docs.first;
                           answerId = answerDoc.id;
 
                           isReplying = true;
-
-                          print('?????????????????????????????????????????????????????????????????????????????????????????');
-                          print(answerId);
-                          print('?????????????????????????????????????????????????????????????????????????????????????????');
                         }
                       },
-                      icon: Icon(Icons.add, color: BLACK, size: 15,),
-                      padding: EdgeInsets.zero,
-                      constraints: BoxConstraints(),
+                      icon: Icon(Icons.messenger_outline, size: 15 ,color: TEXT_GREY,),
+                      label: Text("답글",
+                        style: TextStyle(
+                          color: TEXT_GREY,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.transparent,
+                        elevation: 0,
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size(53.26, 22),
+                        shape: RoundedRectangleBorder(
+                            side: BorderSide(width: 0.50, color: L_GREY),
+                            borderRadius: BorderRadius.circular(4)
+                        ),
+                      ),
                     ),
-                    // 삭제 버튼
-                    IconButton(
-                      onPressed: () {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return DialogBase(
-                                title: '선택하신 댓글을 삭제하시겠습니까?',
-                                actions: [
-                                  ButtonNo(
-                                    name: '아니오',
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  ButtonYes(
-                                      name: '예',
-                                      onPressed: () async {
-                                        await deleteAnswer(answerData, context);
-                                      }
-                                  ),
-                                ],
-                              );
-                            });
-                      },
-                      icon: Icon(Icons.delete, color: BLACK, size: 15,),
-                      padding: EdgeInsets.zero,
-                      constraints: BoxConstraints(),
-                    )
                   ],
-                ),
-              ),
-              // 내용
-              Padding(
-                padding: EdgeInsets.only(left: 63, right: 18, bottom: 10),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(answerData['content']),
                 ),
               ),
               DividerSheet(),
@@ -647,8 +714,8 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   // appbar 더보기
   List<Widget> appbarActions(BuildContext context) {
     return <Widget>[
-      new IconButton(
-        icon: new Icon(Icons.more_vert, color: BLACK,),
+      IconButton(
+        icon: Icon(Icons.more_vert, color: BLACK,),
         onPressed: () {
           showModalBottomSheet(
               backgroundColor: WHITE,

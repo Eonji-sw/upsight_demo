@@ -15,6 +15,14 @@ class MyActivityScreen extends StatefulWidget {
 }
 
 class _MyActivityScreenState extends State<MyActivityScreen> {
+  bool isWho = true;
+
+  void toggleRole() {
+    setState(() {
+      isWho = !isWho;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final authClient = Provider.of<FirebaseAuthProvider>(context, listen: false);
@@ -74,7 +82,7 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                                           ),
                                         ),
                                       ),
-                                      Text('임대인',
+                                      Text(isWho ? '임대인' : '임차인',
                                         style: TextStyle(
                                           color: D_GREY,
                                           fontSize: 20,
@@ -83,18 +91,21 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                                       ),
                                     ],
                                   ),
-                                  Row(
-                                    children: [
-                                      Icon(Icons.cached, color: SUB_BLUE,),
-                                      SizedBox(width: 5),
-                                      Text('프로필 전환',
-                                        style: TextStyle(
-                                          color: SUB_BLUE,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                        ),),
-                                    ],
-                                  ),
+                                  GestureDetector(
+                                    onTap: toggleRole,
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.cached, color: SUB_BLUE,),
+                                        SizedBox(width: 5),
+                                        Text('프로필 전환',
+                                          style: TextStyle(
+                                            color: SUB_BLUE,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                          ),),
+                                      ],
+                                    ),
+                                  )
                                 ],
                               )
                             ],

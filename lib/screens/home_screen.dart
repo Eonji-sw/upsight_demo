@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/colors.dart';
+import '../widgets/gradient_base.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -30,17 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            Container(
-              width: 384,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFFFC0CB), Color(0xFF87CEFA)],
-                  begin: Alignment.bottomLeft,
-                  end: Alignment.topRight
-                ),
-              ),
-            ),
+            // 정보 배너
+            GradientBase(),
             Padding(
               padding: EdgeInsets.only(left: 20, top: 16, bottom: 7),
               child: Text('내 스케줄',

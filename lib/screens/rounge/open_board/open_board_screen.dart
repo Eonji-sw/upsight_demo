@@ -20,6 +20,7 @@ import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
 import '../../../widgets/dialog_base.dart';
 import '../../../widgets/divider_board.dart';
+import '../../../widgets/gradient_base.dart';
 import '../../../widgets/null_search.dart';
 import '../../../widgets/sheet_base.dart';
 import '../qna_board/qna_board_screen.dart';
@@ -553,17 +554,8 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
               },
             ),
           ),
-          Container(
-            width: 384,
-            height: 80,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  colors: [Color(0xFFFFC0CB), Color(0xFF87CEFA)],
-                  begin: Alignment.bottomLeft,
-                  end: Alignment.topRight
-              ),
-            ),
-          ),
+          // 정보 배너
+          GradientBase(),
           // 게시글 리스트
           Expanded(
               child: searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters)
