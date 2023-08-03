@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'dart:convert';
+
+import '../providers/user_firestore.dart';
 var logger = Logger();
 
 enum AuthStatus {
@@ -20,12 +22,20 @@ class FirebaseAuthProvider with ChangeNotifier{
   /// 회원가입
   Future<AuthStatus> createUser(String email, String pw) async {
     try {
-      UserCredential credential = await authClient
-          .createUserWithEmailAndPassword(
+      Map<String, dynamic> userData = {
+        'user_email': email,
+        'user_pw': pw,
+      };
+
+      authClient.createUserWithEmailAndPassword(
         email: email,
         password: pw,
-      );
-      logger.d(credential);
+      )
+      .then((credential) {
+        logger.d("debugging");
+        UserFirebase().createUser(userData);
+        });
+
       return AuthStatus.registerSuccess;
 
     } on FirebaseAuthException catch (e) {
@@ -33,6 +43,18 @@ class FirebaseAuthProvider with ChangeNotifier{
       return AuthStatus.registerFail;
     }
   }
+
+/*  Future<void> findUserEmail(String email) async {
+    authClient.fetchProvidersForEmail(email)
+        .then(providers => {
+    if (providers.length === 0) {
+    // this email hasn't signed up yet
+    } else {
+    // has signed up
+    }
+    });
+  }*/
+
 
   /// 로그인
   Future<AuthStatus> signIn(String email, String pw) async {

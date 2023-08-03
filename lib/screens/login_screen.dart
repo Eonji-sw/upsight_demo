@@ -1,3 +1,4 @@
+import 'package:board_project/providers/user_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/screens/login_secure.dart';
 import 'package:provider/provider.dart';
@@ -125,6 +126,10 @@ class LoginButton extends StatelessWidget {
                 ..showSnackBar(
                   SnackBar(content: Text(authClient.authClient.currentUser!.email! + '님 환영합니다!')), // 닉네임 가져온느거로 수정해야함
                 );
+              UserFirebase().getUserById(authClient.authClient.currentUser!.uid)
+              .then((result){Map a= result as Map<String, dynamic>;
+              logger.d(a);});
+
               Navigator.pushReplacementNamed(context, '/tab');
             } else {
               logger.d(loginField.email);
