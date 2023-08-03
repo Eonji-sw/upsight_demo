@@ -311,83 +311,88 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
             child: DividerBase(),
           ),
           // 댓글 입력창
-          Container(
-            width: 348.84,
-            height: 54.22,
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  child: Container(
-                    width: 358,
-                    height: 40,
-                    decoration: ShapeDecoration(
-                      color: L_GREY,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                    left: 10,
-                    top: -5,
-                    child: Container(
-                      width: 300,
-                      child: TextFormField(
-                        controller: _answerTextEditController,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: '댓글을 입력해주세요.',
-                          hintStyle: TextStyle(
-                            color: TEXT_GREY,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        textAlignVertical: TextAlignVertical.bottom,
-                      ),
-                    )
-                ),
-                Positioned(
-                  right: 0,
-                  top: -5,
-                  child: IconButton(
-                    icon: Icon(Icons.send, color: TEXT_GREY,),
-                    onPressed: () {
-                      // 입력받은 answer 데이터
-                      String answerText = _answerTextEditController.text;
-                      if (answerText.trim().isEmpty) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('댓글 오류'),
-                              content: Text('댓글을 입력해주세요.'),
-                              actions: [
-                                TextButton(
-                                  child: Text('확인'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      } else {
-                        isReplying ? createComment(answerText) : createAnswer(answerText);
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+          buildInputText(context),
         ],
       ),
     );
+  }
+
+  // 댓글 입력창
+  Container buildInputText(BuildContext context) {
+    return Container(
+          width: 348.84,
+          height: 54.22,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 0,
+                top: 0,
+                child: Container(
+                  width: 358,
+                  height: 40,
+                  decoration: ShapeDecoration(
+                    color: L_GREY,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                  left: 10,
+                  top: -5,
+                  child: Container(
+                    width: 300,
+                    child: TextFormField(
+                      controller: _answerTextEditController,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: '댓글을 입력해주세요.',
+                        hintStyle: TextStyle(
+                          color: TEXT_GREY,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      textAlignVertical: TextAlignVertical.bottom,
+                    ),
+                  )
+              ),
+              Positioned(
+                right: 0,
+                top: -5,
+                child: IconButton(
+                  icon: Icon(Icons.send, color: TEXT_GREY,),
+                  onPressed: () {
+                    // 입력받은 answer 데이터
+                    String answerText = _answerTextEditController.text;
+                    if (answerText.trim().isEmpty) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('댓글 오류'),
+                            content: Text('댓글을 입력해주세요.'),
+                            actions: [
+                              TextButton(
+                                child: Text('확인'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } else {
+                      isReplying ? createComment(answerText) : createAnswer(answerText);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
   }
 
   // 대댓글 목록 보여주는 화면

@@ -2,6 +2,7 @@
 내 활동 홈 화면
  */
 
+import 'package:board_project/widgets/border_activity.dart';
 import 'package:board_project/widgets/divider_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -122,163 +123,23 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               // 내 계약
-                              Column(
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-
-                                    },
-                                    child: Container(
-                                      width: 54,
-                                      height: 54,
-                                      decoration: ShapeDecoration(
-                                        color: WHITE,
-                                        shape: OvalBorder(
-                                            side: BorderSide(width: 1, color: L_GREY)
-                                        ),
-                                      ),
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          Positioned(
-                                              child: Icon(
-                                                Icons.pending_actions,
-                                                color: SUB_BLUE,
-                                              )
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '내 계약',
-                                    style: TextStyle(
-                                      color: SUB_BLUE,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  )
-                                ],
+                              BorderActivity(name: '내 계약', icon: Icons.pending_actions,
+                                  onTap: () {}
                               ),
                               SizedBox(width: 30,),
-                              // 내 계약
-                              Column(
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-
-                                    },
-                                    child: Container(
-                                      width: 54,
-                                      height: 54,
-                                      decoration: ShapeDecoration(
-                                        color: WHITE,
-                                        shape: OvalBorder(
-                                            side: BorderSide(width: 1, color: L_GREY)
-                                        ),
-                                      ),
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          Positioned(
-                                              child: Icon(
-                                                Icons.edit,
-                                                color: SUB_BLUE,
-                                              )
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '내 게시글',
-                                    style: TextStyle(
-                                      color: SUB_BLUE,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  )
-                                ],
+                              // 내 게시글
+                              BorderActivity(name: '내 게시글', icon: Icons.edit,
+                                  onTap: () {}
                               ),
                               SizedBox(width: 30,),
                               // 내 댓글
-                              Column(
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-
-                                    },
-                                    child: Container(
-                                      width: 54,
-                                      height: 54,
-                                      decoration: ShapeDecoration(
-                                        color: WHITE,
-                                        shape: OvalBorder(
-                                            side: BorderSide(width: 1, color: L_GREY)
-                                        ),
-                                      ),
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          Positioned(
-                                              child: Icon(
-                                                Icons.messenger_outline,
-                                                color: SUB_BLUE,
-                                              )
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '내 댓글',
-                                    style: TextStyle(
-                                      color: SUB_BLUE,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  )
-                                ],
+                              BorderActivity(name: '내 댓글', icon: Icons.messenger_outline,
+                                  onTap: () {}
                               ),
                               SizedBox(width: 30,),
                               // 내 좋아요
-                              Column(
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-
-                                    },
-                                    child: Container(
-                                      width: 54,
-                                      height: 54,
-                                      decoration: ShapeDecoration(
-                                        color: WHITE,
-                                        shape: OvalBorder(
-                                            side: BorderSide(width: 1, color: L_GREY)
-                                        ),
-                                      ),
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          Positioned(
-                                              child: Icon(
-                                                Icons.favorite_border,
-                                                color: SUB_BLUE,
-                                              )
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '내 좋아요',
-                                    style: TextStyle(
-                                      color: SUB_BLUE,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  )
-                                ],
+                              BorderActivity(name: '내 좋아요', icon: Icons.favorite_border,
+                                  onTap: () {}
                               ),
                             ],
                           ),
