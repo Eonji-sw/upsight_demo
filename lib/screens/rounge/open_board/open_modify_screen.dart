@@ -44,6 +44,10 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
   late Question questionData;
   late String questionId;
 
+  // 수정한 게시물 데이터
+  String modifyTitle = '';
+  String modifyContent = '';
+
   // 게시물의 사진 초기화
   final List<File> _images = [];
   final picker = ImagePicker();
@@ -186,7 +190,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
                 // title 값이 변경되었는지 확인하여 입력 받은 데이터 저장
                 onChanged: (value) {
                   setState(() {
-                    questionData.title = value;
+                    modifyTitle = value;
                   });
                 },
               ),
@@ -196,7 +200,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
                 // content 값이 변경되었는지 확인하여 입력 받은 데이터 저장
                 onChanged: (value) {
                   setState(() {
-                    questionData.content = value;
+                    modifyContent = value;
                   });
                 },
               ),
@@ -221,7 +225,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
                       '수정 완료',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: (questionData.title.isNotEmpty && questionData.content.isNotEmpty && questionData.category.isNotEmpty) ? KEY_BLUE : TEXT_GREY,
+                        color: (modifyTitle.isNotEmpty && modifyContent.isNotEmpty && questionData.category.isNotEmpty) ? KEY_BLUE : TEXT_GREY,
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),
@@ -262,11 +266,11 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
   // 질문 수정 함수
   Future<void> modifyQuestion(BuildContext context) async {
     // 모든 필드가 작성되었는지 확인
-    if (questionData.title.isNotEmpty && questionData.content.isNotEmpty && questionData.category.isNotEmpty) {
+    if (modifyTitle.isNotEmpty && modifyContent.isNotEmpty && questionData.category.isNotEmpty) {
       // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 업데이트
       await questionFirebase.questionReference.doc(questionId).update({
-        'title': questionData.title,
-        'content': questionData.content,
+        'title': modifyTitle,
+        'content': modifyContent,
         'author': questionData.author,
         'create_date': questionData.create_date,
         'modify_date': DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
