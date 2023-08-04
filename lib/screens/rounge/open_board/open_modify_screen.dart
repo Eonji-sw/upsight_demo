@@ -232,7 +232,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
                     ),
                   ),
                 onTap: () {
-                  showDialog(
+                  (modifyTitle.isNotEmpty && modifyContent.isNotEmpty && questionData.category.isNotEmpty) ? showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return DialogBase(
@@ -253,7 +253,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
                         ],
                       );
                     },
-                  );
+                  ) : Null;
                 }
               ),
             ],
