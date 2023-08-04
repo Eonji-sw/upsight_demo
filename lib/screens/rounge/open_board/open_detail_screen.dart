@@ -50,11 +50,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
 
   // 대댓글에 쓰일 answerId 생성
   late String answerId;
-  // answer 데이터 저장할 변수
-  late Answer answerData;
 
-  // 해당 question 데이터들의 DocumentSnapshot 저장할 변수
-  QuerySnapshot? questionSnapshot;
   // 해당 question의 answer 데이터들의 DocumentSnapshot 저장할 변수
   QuerySnapshot? answerSnapshot;
   // 해당 answer의 comment 데이터들의 DocumentSnapshot 저장할 변수
@@ -89,27 +85,10 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
       userFirebase.initDb();
       commentFirebase.initDb();
     });
-    // 해당 question 데이터의 snapshot 저장
-    fetchQuestionData();
     // 해당 answer 데이터의 snapshot 저장
     fetchAnswer();
     // user_id 값을 가져와서 user 변수에 할당
     fetchUser();
-  }
-
-  // 해당 question 데이터의 snapshot 저장하는 함수
-  Future<void> fetchQuestionData() async {
-    // 해당 question의 answer 데이터의 DocumentSnapshot() 찾아서 저장
-    final querySnapshot = await questionFirebase.questionReference
-        .where('title', isEqualTo: questionData.title)
-        .where('content', isEqualTo: questionData.content)
-        .where('author', isEqualTo: questionData.author)
-        .where('create_date', isEqualTo: questionData.create_date)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      questionSnapshot = querySnapshot;
-    }
   }
 
   // 해당 question의 answer 데이터의 snapshot 저장하는 함수
@@ -203,6 +182,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                     ),
                     ListTile(
                         contentPadding: EdgeInsets.only(left: 15, right: 15),
+                        visualDensity: VisualDensity.compact,
                         leading: Image.asset('assets/images/profile.png', width: 32.67),
                         title: Row(
                           children: [
@@ -225,7 +205,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                 fontWeight: FontWeight.w400,
                               ),),
                           ],
-                        )
+                        ),
                     ),
                     DividerBase(),
                     // 내용
@@ -433,8 +413,8 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                       children: [
                         ListTile(
                             dense: true,
-                            visualDensity: VisualDensity(vertical: -4),
                             contentPadding: EdgeInsets.only(left: 5, top: 10),
+                            visualDensity: VisualDensity.compact,
                             leading: Image.asset('assets/images/profile.png', width: 32.67),
                             title: Row(
                               children: [
@@ -550,7 +530,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
             children: [
               ListTile(
                 dense: true,
-                visualDensity: VisualDensity(vertical: -4),
+                visualDensity: VisualDensity.compact,
                 contentPadding: EdgeInsets.only(left: 3, top: 10),
                 leading: Image.asset('assets/images/profile.png', width: 32.67),
                 title: Row(
@@ -713,7 +693,6 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     await commentFirebase.addComment(newComment);
     // 대댓글 입력창 초기화
     _answerTextEditController.clear();
-    fetchQuestionData();
   }
 
   // appbar 더보기

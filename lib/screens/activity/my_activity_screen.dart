@@ -162,22 +162,30 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                       )
                     ],
                   ),
-                  child: ListView(
+                  child: Column(
                     children: [
-                      ListTile(
-                        leading: Icon(Icons.account_circle_outlined),
-                        title: Text('사용자 정보',
-                          style: TextStyle(
-                            color: D_GREY,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
+                      // 사용자 정보
+                      Padding(
+                        padding: EdgeInsets.only(top: 7),
+                        child: ListTile(
+                          leading: Icon(Icons.account_circle_outlined),
+                          title: Text('사용자 정보',
+                            style: TextStyle(
+                              color: D_GREY,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        onTap: () {
+                          onTap: () {
 
-                        },
+                          },
+                        ),
                       ),
-                      DividerSheet(),
+                      Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: 4),
+                        child: DividerSheet(),
+                      ),
+                      // 설정
                       ListTile(
                         leading: Icon(Icons.settings_outlined),
                         title: Text('설정',
@@ -191,7 +199,11 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
 
                         },
                       ),
-                      DividerSheet(),
+                      Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: 4),
+                        child: DividerSheet(),
+                      ),
+                      // 공지사항
                       ListTile(
                         leading: Icon(Icons.error_outline),
                         title: Text('공지사항',
@@ -205,7 +217,11 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
 
                         },
                       ),
-                      DividerSheet(),
+                      Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: 4),
+                        child: DividerSheet(),
+                      ),
+                      // 서비스 정보
                       ListTile(
                         leading: Icon(Icons.info_outline),
                         title: Text('서비스 정보',
@@ -219,7 +235,11 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
 
                         },
                       ),
-                      DividerSheet(),
+                      Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: 4),
+                        child: DividerSheet(),
+                      ),
+                      // 로그아웃
                       ListTile(
                         leading: Icon(Icons.logout_outlined),
                         title: Text('로그아웃',

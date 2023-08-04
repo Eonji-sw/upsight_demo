@@ -3,13 +3,11 @@
  */
 
 import 'package:board_project/providers/question_firestore.dart';
-import 'package:board_project/widgets/divider_base.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
 import 'package:board_project/screens/rounge/open_board/open_create_screen.dart';
 import 'package:board_project/screens/rounge/open_board/open_detail_screen.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:board_project/providers/user_firestore.dart';
 import '../../../constants/colors.dart';
@@ -54,9 +52,8 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   // 스크롤컨트롤러 생성
   ScrollController _scrollController = ScrollController();
 
-  // 게시글(question) 하나를 눌렀을 때 detail screen에 넘겨줄 해당 게시글의 documentId, documentSnapshot
-  late String questionId;
-  late DocumentSnapshot questionDoc;
+  // 해당 게시물 QuerySnapshot
+  late QuerySnapshot? questionSnapshot;
 
   // 화면에 보여질 게시글 정렬 기준(조회순, 최신순, 좋아요순, 댓글순)
   String sortFilter = '최신순';
@@ -88,31 +85,11 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
       // Widget의 build 이후에 callback을 받기 위한 코드
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         // 테스트용 코드 : DB에 데이터 한꺼번에 생성하는 함수
-        //generateData();
+        // questionFirebase.generateData();
         // DB 데이터 받아오는 함수
         fetchData();
       });
     });
-  }
-
-  // 테스트용 코드 : DB에 데이터 한꺼번에 생성하는 함수
-  Future<void> generateData() async {
-    // question collection의 reference 받아오는 코드
-    CollectionReference questionsRef = questionFirebase.questionReference;
-
-    // 22번 question DB 데이터 생성 및 저장
-    for (int i = 0; i < 22; i++) {
-      await questionsRef.add({
-        'title': '$i번째 제목',
-        'content': '$i번째 내용',
-        'author': user,
-        'create_date': DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
-        'modify_date': 'Null',
-        'category': '$i번째 카테고리',
-        'views_count': COMMON_INIT_COUNT,
-        'isLikeClicked': false,
-      });
-    }
   }
 
   // DB 데이터 받아오는 함수
@@ -152,21 +129,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
         isLastPage = true;
       }
     });
-  }
-
-  // 해당 question 데이터 저장하는 변수
-  Future<void> fetchQuestion(Question question) async {
-    QuerySnapshot snapshot = await questionFirebase.questionReference
-        .where('title', isEqualTo: question.title)
-        .where('content', isEqualTo: question.content)
-        .where('author', isEqualTo: question.author)
-        .where('create_date', isEqualTo: question.create_date)
-        .get();
-
-    if (snapshot.docs.isNotEmpty) {
-      questionDoc = snapshot.docs.first;
-      questionId = questionDoc.id;
-    }
   }
 
   // 스크롤 이벤트를 처리하는 함수
@@ -799,20 +761,20 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
             ],
           ),
           onTap: () async {
-            await fetchQuestion(question);
+            questionSnapshot = await questionFirebase.fetchQuestion(question);
             // 게시글 중 하나를 눌렀을 경우 해당 게시글의 조회수 증가
             await increaseViewsCount(question);
             // 게시글의 상세화면을 보여주는 detail screen으로 화면 전환
             await Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute(
                   builder: (BuildContext context) =>
-                      OpenDetailScreen(data: question, dataId: questionId, dataDoc: questionDoc)),
+                      OpenDetailScreen(data: question, dataId: questionSnapshot!.docs.first.id, dataDoc: questionSnapshot!.docs.first)),
             );
 
             // 조회수 반영 개선을 위한 코드
             isResetViews = true;
             setState(() {
-              resetViews = (questionDoc.data() as Map<String, dynamic>)['views_count'];
+              resetViews = (questionSnapshot!.docs.first.data() as Map<String, dynamic>)['views_count'];
               if (question.views_count != resetViews) {
                 question.views_count = resetViews;
               }
@@ -840,7 +802,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   // 조회수 증가시키는 함수
   Future<void> increaseViewsCount(Question question) async {
     // 해당 question의 조회수를 증가된 값으로 업데이트
-    await questionFirebase.questionReference.doc(questionId).update({
+    await questionFirebase.questionReference.doc(questionSnapshot!.docs.first.id).update({
       'views_count': FieldValue.increment(INCREASE_COUNT),
     });
 
