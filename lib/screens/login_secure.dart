@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'dart:convert';
 
@@ -18,6 +19,8 @@ enum AuthStatus {
 class FirebaseAuthProvider with ChangeNotifier{
   FirebaseAuth authClient;
   User? user;
+  FlutterSecureStorage? storage;
+
   FirebaseAuthProvider({auth}) : authClient = auth ?? FirebaseAuth.instance;
   /// 회원가입
   Future<AuthStatus> createUser(String email, String pw) async {
@@ -58,6 +61,8 @@ class FirebaseAuthProvider with ChangeNotifier{
 
   /// 로그인
   Future<AuthStatus> signIn(String email, String pw) async {
+    //if persistence : email pw 변경
+
     try {
       final UserCredential userCredential = await authClient
           .signInWithEmailAndPassword(
@@ -67,9 +72,18 @@ class FirebaseAuthProvider with ChangeNotifier{
       // Login successful
       final User? user = userCredential.user;
       if (user != null) {
+        this.user=user; //set current user
+        String val = {'id':email, 'password':pw}.toString(); //아이디 비밀번호 string으로 저장
+        logger.d("val: ${val}");
+        await storage!.write(
+          key: 'login',
+          value: val,
+        );
+        logger.d("storage: ${storage}"); ///에러발생
         logger.i('Login successful for user: ${user.email}');
-        logger.d('persist on');
-        authPersistence();
+        //logger.d('persist on');
+        logger.d(this.user);
+
         notifyListeners();
         return AuthStatus.loginSuccess;
       } else {
@@ -93,14 +107,20 @@ class FirebaseAuthProvider with ChangeNotifier{
   /// 로그아웃
   Future<void> signOut() async {
     await authClient.signOut();
+    user=authClient.currentUser;
     logger.d("로그아웃");
     notifyListeners();
   }
 
   /// 회원가입, 로그인시 사용자 영속 -> 수정해야함
-  void authPersistence() async {
+/*  void authPersistence() async {
     await authClient.setPersistence(Persistence.LOCAL);
+  }*/
+  void getPersistence(FlutterSecureStorage storage) async {
+    dynamic userInfo = await storage.read(key:'login'); // userInfo가 없을때 null 반환
+    logger.d(userInfo); //확인
   }
+
 
   /// 유저 삭제
   Future<void> deleteUser(String email) async {

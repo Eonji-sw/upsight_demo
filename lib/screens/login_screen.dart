@@ -102,7 +102,7 @@ class LoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authClient =
+    final auth =
     Provider.of<FirebaseAuthProvider>(context, listen: false);
     final loginField = Provider.of<LoginFieldModel>(context, listen: false);
     return Container(
@@ -115,18 +115,18 @@ class LoginButton extends StatelessWidget {
           ),
         ),
         onPressed: () async {
-          await authClient
+          await auth
               .signIn(loginField.email, loginField.password)
               .then((loginStatus) {
             if (loginStatus == AuthStatus.loginSuccess) {
               logger.d("로그인 성공");
-              logger.d(authClient.authClient.currentUser!.email);
+              logger.d(auth.authClient.currentUser!.email);
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(
-                  SnackBar(content: Text(authClient.authClient.currentUser!.email! + '님 환영합니다!')), // 닉네임 가져온느거로 수정해야함
+                  SnackBar(content: Text(auth.user!.email! + '님 환영합니다!')), // 닉네임 가져온느거로 수정해야함
                 );
-              UserFirebase().getUserById(authClient.authClient.currentUser!.uid)
+              UserFirebase().getUserById(auth.user!.uid)
               .then((result){Map a= result as Map<String, dynamic>;
               logger.d(a);});
 
