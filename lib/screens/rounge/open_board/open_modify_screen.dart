@@ -1,7 +1,10 @@
 /*
 게시글(question) 수정하는 page
+cupertinoPicker 기능 구현
+bottomTabBar : x
  */
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
@@ -14,21 +17,22 @@ import 'package:board_project/providers/question_firestore.dart';
 import '../../../constants/colors.dart';
 import '../../../constants/list.dart';
 import '../../../constants/size.dart';
-import '../../../router.dart';
 import '../../../widgets/appbar_back.dart';
 import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
 import '../../../widgets/dialog_base.dart';
 import '../../../widgets/divider_base.dart';
 import '../../../widgets/textform_base.dart';
+import 'open_detail_screen.dart';
 
 
 class OpenModifyScreen extends StatefulWidget {
-  // detail_screen에서 전달받는 해당 question, questionId 데이터
+  // detail_screen에서 전달받는 해당 question, questionId, questionDoc 데이터
   final Question data;
   final String dataId;
+  final DocumentSnapshot dataDoc;
 
-  OpenModifyScreen({required this.data, required this.dataId});
+  OpenModifyScreen({required this.data, required this.dataId, required this.dataDoc});
   _OpenModifyScreenState createState() => _OpenModifyScreenState();
 }
 
@@ -40,9 +44,10 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
   int lastBoardIndex = COMMON_INIT_COUNT;
   int lastCategoryIndex = COMMON_INIT_COUNT;
 
-  // 전달받은 question, qeustionId 데이터 저장할 변수
+  // 전달받은 question, questionId, questionDoc 데이터 저장할 변수
   late Question questionData;
   late String questionId;
+  late DocumentSnapshot questionDoc;
 
   // 수정한 게시물 데이터
   String modifyTitle = '';
@@ -55,9 +60,10 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
   @override
   void initState() {
     super.initState();
-    // 전달받은 question 데이터 저장
+    // 전달받은 question, questionId, questionDoc 데이터 저장
     questionData = widget.data;
     questionId = widget.dataId;
+    questionDoc = widget.dataDoc;
 
     setState(() {
       // firebase 객체 초기화
@@ -72,9 +78,53 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // appBar
-      appBar: const PreferredSize(
-        preferredSize: Size.fromHeight(65),
-        child: AppbarBack(title: '게시글 수정'),
+      // appBar: const PreferredSize(
+      //   preferredSize: Size.fromHeight(65),
+      //   child: AppbarBack(title: '게시글 수정'),
+      // ),
+      appBar: AppBar(
+        backgroundColor: WHITE,
+        centerTitle: true,
+        // 제목
+        title: Text('게시글 수정',
+          style: TextStyle(
+            color: BLACK,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        // 뒤로가기
+        leading: IconButton(
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return DialogBase(
+                      title: '이 페이지를 나가면 게시글 수정사항이 저장되지 않습니다. 나가시겠습니까?',
+                      actions: [
+                        ButtonNo(
+                          name: '아니오',
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        ButtonYes(
+                          name: '예',
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (BuildContext context) => OpenDetailScreen(data: questionData, dataId: questionId, dataDoc: questionDoc),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  }
+              );
+            },
+            color: BLACK,
+            icon: Icon(Icons.arrow_back_ios_new)),
       ),
       // body
       body: SingleChildScrollView(
@@ -266,20 +316,25 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
   // 질문 수정 함수
   Future<void> modifyQuestion(BuildContext context) async {
     // 모든 필드가 작성되었는지 확인
-    if (modifyTitle.isNotEmpty && modifyContent.isNotEmpty && questionData.category.isNotEmpty) {
+    if (modifyTitle.isNotEmpty && modifyContent.isNotEmpty && questionData.category != '글 주제 선택') {
       // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 업데이트
-      await questionFirebase.questionReference.doc(questionId).update({
-        'title': modifyTitle,
-        'content': modifyContent,
-        'author': questionData.author,
-        'create_date': questionData.create_date,
-        'modify_date': DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
-        'category': questionData.category,
-        'views_count': questionData.views_count,
-        'isLikeClicked': questionData.isLikeClicked,
-      });
-      // 수정된 question 데이터를 가지고 게시물 list screen으로 전환
-      Navigator.pushNamed(context, boardRoute, arguments: questionFirebase.questionReference.doc(questionId).get());
+      Question modifyQuestion = Question(
+        title: modifyTitle,
+        content: modifyContent,
+        author: questionData.author,
+        create_date: questionData.create_date,
+        modify_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
+        category: questionData.category,
+        views_count: questionData.views_count,
+        isLikeClicked: questionData.isLikeClicked,
+        answerCount: questionData.answerCount,
+      );
+      await questionFirebase.questionReference.doc(questionId).update(modifyQuestion.toMap());
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (BuildContext context) => OpenDetailScreen(data: modifyQuestion, dataId: questionId, dataDoc: questionDoc),
+        ),
+      );
     }
   }
 
@@ -293,11 +348,6 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
 
       setState(() {});
     }
-  }
-
-  // 이미지 삭제하는 함수
-  delImage(File image) {
-    _images.remove(image);
   }
 
   // 이미지를 보여주는 위젯
@@ -332,7 +382,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
             child: GestureDetector(
               onTap: () {
                 setState(() {
-                  delImage(image);
+                  _images.remove(image);
                 });
               },
               child: Container(

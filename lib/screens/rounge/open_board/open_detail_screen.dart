@@ -1,5 +1,7 @@
 /*
-게시글(question)의 상세 화면을 보여주는 page : 좋아요, 댓글 기능 구현
+게시글(question)의 상세 화면을 보여주는 page
+좋아요, 댓글, 대댓글 기능 구현
+bottomTabBar : x
  */
 
 import 'package:board_project/providers/answer_firestore.dart';
@@ -25,6 +27,7 @@ import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
 import '../../../widgets/divider_sheet.dart';
 import '../../../widgets/listtile_sheet.dart';
+import 'open_board_screen.dart';
 
 class OpenDetailScreen extends StatefulWidget {
   // infinite_scroll_page에서 전달받는 해당 question, questionId, questionDoc 데이터
@@ -127,9 +130,34 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // appBar
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(65),
-        child: AppbarAction(title: '자유게시판', actions: appbarActions(context),)
+      // appBar: PreferredSize(
+      //   preferredSize: Size.fromHeight(65),
+      //   child: AppbarAction(title: '자유게시판', actions: appbarActions(context),)
+      // ),
+      appBar: AppBar(
+          backgroundColor: WHITE,
+          centerTitle: true,
+          // 제목
+          title: Text('자유게시판',
+            style: TextStyle(
+              color: BLACK,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          // 뒤로가기
+          leading: IconButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => OpenBoardScreen(),
+                  ),
+                );
+              },
+              color: BLACK,
+              icon: Icon(Icons.arrow_back_ios_new)),
+          // 더보기
+          actions: appbarActions(context),
       ),
       // body
       body: Column(
@@ -262,7 +290,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                         children: [
                           Icon(Icons.visibility_outlined, color: TEXT_GREY, size: 18),
                           SizedBox(width: 4,),
-                          Text('조회 ${(questionDoc.data() as Map<String, dynamic>)['views_count'].toString()}',
+                          Text('조회 ${questionData.views_count}',
                             style: TextStyle(
                               color: TEXT_GREY,
                               fontSize: 14,
@@ -469,7 +497,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                                                             name: '예',
                                                             onPressed: () async {
                                                               await commentFirebase.commentReference.doc(commentData.reference.id).delete();
-                                                              Navigator.pop(context);
+                                                              Navigator.of(context).pop();
                                                             }
                                                         ),
                                                       ],
@@ -714,7 +742,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (BuildContext context) =>
-                                  OpenModifyScreen(data: questionData, dataId: questionId),
+                                  OpenModifyScreen(data: questionData, dataId: questionId, dataDoc: questionDoc),
                             ),
                           );
                         }
@@ -779,7 +807,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
       }
       // 데이터를 다시 불러옴
       fetchAnswer();
-      Navigator.pop(context);
+      Navigator.of(context).pop();
     }
   }
 
@@ -834,6 +862,10 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     }
 
     // 게시물 list screen으로 전환
-    Navigator.pushNamed(context, boardRoute);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (BuildContext context) => OpenBoardScreen(),
+      ),
+    );
   }
 }

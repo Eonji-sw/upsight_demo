@@ -18,7 +18,7 @@ class DialogBase extends StatelessWidget {
         height: 195,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: WHITE,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(

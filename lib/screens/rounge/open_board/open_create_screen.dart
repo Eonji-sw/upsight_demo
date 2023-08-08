@@ -1,7 +1,11 @@
 /*
 게시글(question) 생성하는 page
+cupertinoPicker 기능 구현
+bottomTabBar : x -> 어차피 floatingActionButton을 통해 들어가는 페이지라 별도 처리가 없어도 bottomTabBar가 뜨지 않음
  */
 
+import 'package:board_project/screens/rounge/open_board/open_board_screen.dart';
+import 'package:board_project/screens/rounge/open_board/open_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -49,9 +53,10 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   int lastBoardIndex = COMMON_INIT_COUNT;
   int lastCategoryIndex = COMMON_INIT_COUNT;
 
-  // 게시글(question) 하나를 눌렀을 때 detail screen에 넘겨줄 해당 게시글의 documentId, documentSnapshot
+  // 게시글(question) 하나를 눌렀을 때 detail screen에 넘겨줄 해당 게시글의 documentId, questionDoc, documentSnapshot
   late String questionId;
   late DocumentSnapshot questionDoc;
+  late QuerySnapshot? questionSnapshot;
 
   // 현재 로그인한 사용자 name
   late String user;
@@ -90,10 +95,54 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // appBar
-        appBar: const PreferredSize(
-          preferredSize: Size.fromHeight(65),
-          child: AppbarBack(title: '게시글 작성'),
+      //   appBar: const PreferredSize(
+      //     preferredSize: Size.fromHeight(65),
+      //     child: AppbarBack(title: '게시글 작성'),
+      //   ),
+      appBar: AppBar(
+        backgroundColor: WHITE,
+        centerTitle: true,
+        // 제목
+        title: Text('게시글 작성',
+          style: TextStyle(
+            color: BLACK,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
+        // 뒤로가기
+        leading: IconButton(
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return DialogBase(
+                      title: '이 페이지를 나가면 작성하던 게시글 내용이 삭제됩니다. 나가시겠습니까?',
+                      actions: [
+                        ButtonNo(
+                          name: '아니오',
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        ButtonYes(
+                          name: '예',
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (BuildContext context) => OpenBoardScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  }
+              );
+            },
+            color: BLACK,
+            icon: Icon(Icons.arrow_back_ios_new)),
+      ),
       // body
       body: SingleChildScrollView(
         child: Container(
@@ -297,7 +346,14 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
         answerCount: answerCount,
       );
       questionFirebase.addQuestion(newQuestion);
-      Navigator.pushNamed(context, boardRoute);
+      questionSnapshot = await questionFirebase.fetchQuestion(newQuestion);
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (BuildContext context) => OpenDetailScreen(data: newQuestion, dataId: questionSnapshot!.docs.first.id, dataDoc: questionSnapshot!.docs.first),
+        ),
+      );
+
       // 이미지 storage에 업로드
       // for (int i = 0; i < _images.length; i++) {
       //   FirebaseStorage.instance.ref("question/test_${i}").putFile(_images[i]);
