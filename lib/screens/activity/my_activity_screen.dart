@@ -1,7 +1,9 @@
 /*
-내 활동 홈 화면
+내 활동 화면
  */
 
+import 'package:board_project/screens/activity/setting_screen.dart';
+import 'package:board_project/widgets/border_activity.dart';
 import 'package:board_project/widgets/divider_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +17,14 @@ class MyActivityScreen extends StatefulWidget {
 }
 
 class _MyActivityScreenState extends State<MyActivityScreen> {
+  bool isWho = true;
+
+  void toggleRole() {
+    setState(() {
+      isWho = !isWho;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final authClient = Provider.of<FirebaseAuthProvider>(context, listen: false);
@@ -24,7 +34,7 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
               child: Column(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(top: 65, bottom: 35),
+                    padding: EdgeInsets.only(top: 65, bottom: 30, left: 10, right: 10),
                     child: Container(
                       width: 358,
                       height: 205.75,
@@ -74,7 +84,7 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                                             ),
                                           ),
                                         ),
-                                        Text('임대인',
+                                        Text(isWho ? '임대인' : '임차인',
                                           style: TextStyle(
                                             color: D_GREY,
                                             fontSize: 20,
@@ -83,18 +93,21 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                                         ),
                                       ],
                                     ),
-                                    Row(
-                                      children: [
-                                        Icon(Icons.cached, color: SUB_BLUE,),
-                                        SizedBox(width: 5),
-                                        Text('프로필 전환',
-                                          style: TextStyle(
-                                            color: SUB_BLUE,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w400,
-                                          ),),
-                                      ],
-                                    ),
+                                    GestureDetector(
+                                      onTap: toggleRole,
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.cached, color: SUB_BLUE,),
+                                          SizedBox(width: 5),
+                                          Text('프로필 전환',
+                                            style: TextStyle(
+                                              color: SUB_BLUE,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400,
+                                            ),),
+                                        ],
+                                      ),
+                                    )
                                   ],
                                 )
                               ],
@@ -111,163 +124,23 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 // 내 계약
-                                Column(
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-
-                                      },
-                                      child: Container(
-                                        width: 54,
-                                        height: 54,
-                                        decoration: ShapeDecoration(
-                                          color: WHITE,
-                                          shape: OvalBorder(
-                                              side: BorderSide(width: 1, color: L_GREY)
-                                          ),
-                                        ),
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            Positioned(
-                                                child: Icon(
-                                                  Icons.pending_actions,
-                                                  color: SUB_BLUE,
-                                                )
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '내 계약',
-                                      style: TextStyle(
-                                        color: SUB_BLUE,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    )
-                                  ],
+                                BorderActivity(name: '내 계약', icon: Icons.pending_actions,
+                                    onTap: () {}
                                 ),
                                 SizedBox(width: 30,),
-                                // 내 계약
-                                Column(
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-
-                                      },
-                                      child: Container(
-                                        width: 54,
-                                        height: 54,
-                                        decoration: ShapeDecoration(
-                                          color: WHITE,
-                                          shape: OvalBorder(
-                                              side: BorderSide(width: 1, color: L_GREY)
-                                          ),
-                                        ),
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            Positioned(
-                                                child: Icon(
-                                                  Icons.edit,
-                                                  color: SUB_BLUE,
-                                                )
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '내 게시글',
-                                      style: TextStyle(
-                                        color: SUB_BLUE,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    )
-                                  ],
+                                // 내 게시글
+                                BorderActivity(name: '내 게시글', icon: Icons.edit,
+                                    onTap: () {}
                                 ),
                                 SizedBox(width: 30,),
                                 // 내 댓글
-                                Column(
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-
-                                      },
-                                      child: Container(
-                                        width: 54,
-                                        height: 54,
-                                        decoration: ShapeDecoration(
-                                          color: WHITE,
-                                          shape: OvalBorder(
-                                              side: BorderSide(width: 1, color: L_GREY)
-                                          ),
-                                        ),
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            Positioned(
-                                                child: Icon(
-                                                  Icons.messenger_outline,
-                                                  color: SUB_BLUE,
-                                                )
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '내 댓글',
-                                      style: TextStyle(
-                                        color: SUB_BLUE,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    )
-                                  ],
+                                BorderActivity(name: '내 댓글', icon: Icons.messenger_outline,
+                                    onTap: () {}
                                 ),
                                 SizedBox(width: 30,),
                                 // 내 좋아요
-                                Column(
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-
-                                      },
-                                      child: Container(
-                                        width: 54,
-                                        height: 54,
-                                        decoration: ShapeDecoration(
-                                          color: WHITE,
-                                          shape: OvalBorder(
-                                              side: BorderSide(width: 1, color: L_GREY)
-                                          ),
-                                        ),
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            Positioned(
-                                                child: Icon(
-                                                  Icons.favorite_border,
-                                                  color: SUB_BLUE,
-                                                )
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '내 좋아요',
-                                      style: TextStyle(
-                                        color: SUB_BLUE,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    )
-                                  ],
+                                BorderActivity(name: '내 좋아요', icon: Icons.favorite_border,
+                                    onTap: () {}
                                 ),
                               ],
                             ),
@@ -290,22 +163,30 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                         )
                       ],
                     ),
-                    child: ListView(
+                    child: Column(
                       children: [
-                        ListTile(
-                          leading: Icon(Icons.account_circle_outlined),
-                          title: Text('사용자 정보',
-                            style: TextStyle(
-                              color: D_GREY,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
+                        // 사용자 정보
+                        Padding(
+                          padding: EdgeInsets.only(top: 7),
+                          child: ListTile(
+                            leading: Icon(Icons.account_circle_outlined),
+                            title: Text('사용자 정보',
+                              style: TextStyle(
+                                color: D_GREY,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                          onTap: () {
+                            onTap: () {
 
-                          },
+                            },
+                          ),
                         ),
-                        DividerSheet(),
+                        Padding(
+                          padding: EdgeInsets.only(top: 4, bottom: 4),
+                          child: DividerSheet(),
+                        ),
+                        // 설정
                         ListTile(
                           leading: Icon(Icons.settings_outlined),
                           title: Text('설정',
@@ -316,10 +197,18 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                             ),
                           ),
                           onTap: () {
-
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (BuildContext context) => SettingScreen(),
+                              ),
+                            );
                           },
                         ),
-                        DividerSheet(),
+                        Padding(
+                          padding: EdgeInsets.only(top: 4, bottom: 4),
+                          child: DividerSheet(),
+                        ),
+                        // 공지사항
                         ListTile(
                           leading: Icon(Icons.error_outline),
                           title: Text('공지사항',
@@ -333,7 +222,11 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
 
                           },
                         ),
-                        DividerSheet(),
+                        Padding(
+                          padding: EdgeInsets.only(top: 4, bottom: 4),
+                          child: DividerSheet(),
+                        ),
+                        // 서비스 정보
                         ListTile(
                           leading: Icon(Icons.info_outline),
                           title: Text('서비스 정보',
@@ -347,7 +240,11 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
 
                           },
                         ),
-                        DividerSheet(),
+                        Padding(
+                          padding: EdgeInsets.only(top: 4, bottom: 4),
+                          child: DividerSheet(),
+                        ),
+                        // 로그아웃
                         ListTile(
                           leading: Icon(Icons.logout_outlined),
                           title: Text('로그아웃',
@@ -365,11 +262,8 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                                 SnackBar(content: Text('로그아웃 되었습니다.')),
                               );
                             final auth = Provider.of<FirebaseAuthProvider>(context, listen: false);
-                            logger.d("로그아웃 클릭");
-                            if(auth.user == null) {
-                              //Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                              Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil("/login", (route)=>false);
-                            }
+                            if(auth.user == null)
+                              Navigator.of(context).pushNamedAndRemoveUntil("/login", (route) => false);
                           },
                         ),
                       ],
