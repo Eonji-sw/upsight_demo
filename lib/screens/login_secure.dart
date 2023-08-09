@@ -16,12 +16,29 @@ enum AuthStatus {
   resetFail,
 }
 
+/*class Login {
+  final String email;
+  final String password;
+
+  Login(this.email, this.password);
+
+  Login.fromJson(Map<String, dynamic> json)
+      : email = json['email'],
+        password = json['password'];
+
+  Map<String, dynamic> toJson() => {
+    'email': email,
+    'password': password,
+  };
+}*/
+
 class FirebaseAuthProvider with ChangeNotifier{
   FirebaseAuth authClient;
   User? user;
-  FlutterSecureStorage? storage;
+  //final FlutterSecureStorage storage = const FlutterSecureStorage();
 
   FirebaseAuthProvider({auth}) : authClient = auth ?? FirebaseAuth.instance;
+
   /// 회원가입
   Future<AuthStatus> createUser(String email, String pw) async {
     try {
@@ -47,18 +64,6 @@ class FirebaseAuthProvider with ChangeNotifier{
     }
   }
 
-/*  Future<void> findUserEmail(String email) async {
-    authClient.fetchProvidersForEmail(email)
-        .then(providers => {
-    if (providers.length === 0) {
-    // this email hasn't signed up yet
-    } else {
-    // has signed up
-    }
-    });
-  }*/
-
-
   /// 로그인
   Future<AuthStatus> signIn(String email, String pw) async {
     //if persistence : email pw 변경
@@ -73,18 +78,18 @@ class FirebaseAuthProvider with ChangeNotifier{
       final User? user = userCredential.user;
       if (user != null) {
         this.user=user; //set current user
-        String val = {'id':email, 'password':pw}.toString(); //아이디 비밀번호 string으로 저장
-        logger.d("val: ${val}");
-        await storage!.write(
+
+/*        var val = jsonEncode(Login(email, pw));
+        logger.d("val: $val");
+        storage.write(
           key: 'login',
           value: val,
-        );
-        logger.d("storage: ${storage}"); ///에러발생
+        );*/
+
         logger.i('Login successful for user: ${user.email}');
-        //logger.d('persist on');
-        logger.d(this.user);
 
         notifyListeners();
+
         return AuthStatus.loginSuccess;
       } else {
         return AuthStatus.loginFail;
@@ -107,7 +112,7 @@ class FirebaseAuthProvider with ChangeNotifier{
   /// 로그아웃
   Future<void> signOut() async {
     await authClient.signOut();
-    user=authClient.currentUser;
+    user=null;
     logger.d("로그아웃");
     notifyListeners();
   }
@@ -116,10 +121,10 @@ class FirebaseAuthProvider with ChangeNotifier{
 /*  void authPersistence() async {
     await authClient.setPersistence(Persistence.LOCAL);
   }*/
-  void getPersistence(FlutterSecureStorage storage) async {
+/*  dynamic getPersistence() async {
     dynamic userInfo = await storage.read(key:'login'); // userInfo가 없을때 null 반환
-    logger.d(userInfo); //확인
-  }
+    return userInfo;
+  }*/
 
 
   /// 유저 삭제

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:board_project/screens/login_secure.dart';
 import 'package:provider/provider.dart';
 import 'package:board_project/models/model_login.dart';
+
+
 class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -105,6 +107,7 @@ class LoginButton extends StatelessWidget {
     final auth =
     Provider.of<FirebaseAuthProvider>(context, listen: false);
     final loginField = Provider.of<LoginFieldModel>(context, listen: false);
+
     return Container(
       width: MediaQuery.of(context).size.width * 0.85,
       height: MediaQuery.of(context).size.height * 0.05,
@@ -119,8 +122,8 @@ class LoginButton extends StatelessWidget {
               .signIn(loginField.email, loginField.password)
               .then((loginStatus) {
             if (loginStatus == AuthStatus.loginSuccess) {
-              logger.d("로그인 성공");
-              logger.d(auth.authClient.currentUser!.email);
+              logger.i("로그인 성공");
+              //logger.d(auth.authClient.currentUser!.email);
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(
