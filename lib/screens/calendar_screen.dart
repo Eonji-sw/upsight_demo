@@ -52,6 +52,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
       userFirebase.initDb();// Initialize the database
       scheduleStream = scheduleFirebase.getSchedules(); // Get the schedule data through the stream
     });
+    // user_id 값을 가져와서 user 변수에 할당
+    fetchUser();
+  }
+
+  // 사용자 데이터를 가져와서 user 변수에 할당하는 함수
+  Future<void> fetchUser() async {
+    final userSnapshot = await userFirebase.userReference.get();
+
+    if (userSnapshot.docs.isNotEmpty) {
+      final document = userSnapshot.docs.first;
+      setState(() {
+        user = (document.data() as Map<String, dynamic>)['user_id'];
+      });
+    }
   }
 
   @override
