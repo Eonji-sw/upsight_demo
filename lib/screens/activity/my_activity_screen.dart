@@ -263,7 +263,7 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                               );
                             final auth = Provider.of<FirebaseAuthProvider>(context, listen: false);
                             if(auth.user == null)
-                              Navigator.of(context).pushNamedAndRemoveUntil("/login", (route) => false);
+                              Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil("/login", (route)=>false);
                           },
                         ),
                       ],
