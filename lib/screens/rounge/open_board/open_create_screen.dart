@@ -20,7 +20,6 @@ import 'package:board_project/providers/user_firestore.dart';
 import '../../../constants/colors.dart';
 import '../../../constants/list.dart';
 import '../../../constants/size.dart';
-import '../../../router.dart';
 import '../../../widgets/appbar_back.dart';
 import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';

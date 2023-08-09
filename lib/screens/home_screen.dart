@@ -1,5 +1,6 @@
 /*
 홈 화면
+bottomTabBar : o
  */
 
 import 'package:flutter/material.dart';
@@ -20,8 +21,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 로고
             Padding(
-              padding: EdgeInsets.only(top: 30, bottom: 10),
+              padding: EdgeInsets.only(top: 30),
               child: Align(
                 alignment: Alignment.center,
                 child: Container(
@@ -33,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             // 정보 배너
             GradientBase(),
+            // 내 스케줄
             Padding(
               padding: EdgeInsets.only(left: 20, top: 16, bottom: 7),
               child: Text('내 스케줄',
@@ -65,9 +68,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            // 자유게시판 인기 글
             Padding(
               padding: EdgeInsets.only(left: 20, top: 16, bottom: 7),
-              child: Text('하자 보수 게시판 인기 글',
+              child: Text('자유게시판 인기 글',
                 style: TextStyle(
                   color: BLACK,
                   fontSize: 20,
@@ -95,7 +99,39 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-            )
+            ),
+            // 질문하기 인기 글
+            Padding(
+              padding: EdgeInsets.only(left: 20, top: 16, bottom: 7),
+              child: Text('질문하기 인기 글',
+                style: TextStyle(
+                  color: BLACK,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: Container(
+                width: 322,
+                height: 257.19,
+                decoration: ShapeDecoration(
+                  color: WHITE,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  shadows: [
+                    BoxShadow(
+                      color: BOX_SHADOW_COLOR,
+                      blurRadius: 4,
+                      offset: Offset(0, 0),
+                      spreadRadius: 2,
+                    )
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       )

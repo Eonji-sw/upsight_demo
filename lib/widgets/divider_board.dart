@@ -8,7 +8,7 @@ class DivideBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 384,
+      width: double.infinity,
       height: 4,
       decoration: BoxDecoration(color: L_GREY),
     );

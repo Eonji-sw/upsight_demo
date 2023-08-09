@@ -1,7 +1,8 @@
 /*
-내 활동 홈 화면
+내 활동 화면
  */
 
+import 'package:board_project/screens/activity/setting_screen.dart';
 import 'package:board_project/widgets/border_activity.dart';
 import 'package:board_project/widgets/divider_sheet.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(top: 65, bottom: 35),
+                  padding: EdgeInsets.only(top: 65, bottom: 30, left: 10, right: 10),
                   child: Container(
                     width: 358,
                     height: 205.75,
@@ -196,7 +197,11 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                           ),
                         ),
                         onTap: () {
-
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (BuildContext context) => SettingScreen(),
+                            ),
+                          );
                         },
                       ),
                       Padding(

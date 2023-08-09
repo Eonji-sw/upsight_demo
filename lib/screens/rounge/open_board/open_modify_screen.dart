@@ -275,7 +275,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
                       '수정 완료',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: (modifyTitle.isNotEmpty && modifyContent.isNotEmpty && questionData.category.isNotEmpty) ? KEY_BLUE : TEXT_GREY,
+                        color: (modifyTitle.isNotEmpty && modifyContent.isNotEmpty && boardCategory.isNotEmpty) ? KEY_BLUE : TEXT_GREY,
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),

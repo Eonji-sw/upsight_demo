@@ -20,7 +20,6 @@ import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
 import '../../../models/comment.dart';
 import '../../../providers/comment_firestore.dart';
-import '../../../router.dart';
 import '../../../widgets/appbar_action.dart';
 import '../../../widgets/null_answer.dart';
 import '../../../widgets/button_no.dart';
@@ -28,6 +27,7 @@ import '../../../widgets/button_yes.dart';
 import '../../../widgets/divider_sheet.dart';
 import '../../../widgets/listtile_sheet.dart';
 import 'open_board_screen.dart';
+
 
 class OpenDetailScreen extends StatefulWidget {
   // infinite_scroll_page에서 전달받는 해당 question, questionId, questionDoc 데이터
