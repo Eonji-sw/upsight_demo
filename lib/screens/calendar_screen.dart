@@ -82,7 +82,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         schedule.title,
         schedule.start_date,
         schedule.end_date,
-        schedule.type == 0 ? const Color(0xFF0F8644) : const Color(0xFF1565C0),
+        schedule.type == 0 ? const Color(0xFFAFD67D) : schedule.type == 2 ? const Color(0xFFD7A6FE) : const Color(0xFFFFB444),
+
         schedule.isSwitched,
       );
     }).toList();
@@ -276,6 +277,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               style: TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
+                                                color: Colors.black,
                                               ),
                                             ),
                                             SizedBox(width: 20,),
@@ -285,6 +287,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               style: TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
+                                                color: Colors.black,
                                               ),
                                             ),
                                           ],
@@ -296,7 +299,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     children: [
                                       // 일정 시작 및 종료 시간
                                       CupertinoButton(
-                                        onPressed: () {
+                                        onPressed: switchValue
+                                            ? null // If the switch is on (whole day), disable the button
+                                            : () {
                                           showModalBottomSheet(
                                             context: context,
                                             builder: (BuildContext context) {
@@ -309,9 +314,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                                         initialDateTime: selectedStartTime,
                                                         onDateTimeChanged: (DateTime newDate) {
                                                           setDialogState(() => selectedStartTime = newDate);
-                                                          // setState(() {
-                                                          //   selectedStartTime = newDate;
-                                                          // });
                                                         },
                                                         mode: CupertinoDatePickerMode.time,
                                                       ),
@@ -321,9 +323,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                                         initialDateTime: selectedEndTime,
                                                         onDateTimeChanged: (DateTime newDate) {
                                                           setDialogState(() => selectedEndTime = newDate);
-                                                          // setState(() {
-                                                          //   selectedEndTime = newDate;
-                                                          // });
                                                         },
                                                         mode: CupertinoDatePickerMode.time,
                                                       ),
@@ -342,6 +341,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               style: TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
+                                                color: switchValue ? Colors.grey : Colors.black, // Change color if switch is on
                                               ),
                                             ),
                                             SizedBox(width: 20,),
@@ -351,6 +351,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               style: TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
+                                                color: switchValue ? Colors.grey : Colors.black, // Change color if switch is on
                                               ),
                                             ),
                                           ],
@@ -364,12 +365,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     activeColor: CupertinoColors.activeBlue,
                                     onChanged: (bool value) {
                                       print("Switch value changed: $value");
-                                      // setState(() {
-                                      //   switchValue = value;
-                                      // });
                                       setDialogState(() => switchValue = value);
                                     },
                                   ),
+
                                   //구분선 추가
                                   Divider(height: 1, color: L_GREY),
                                   SizedBox(height: 20),
