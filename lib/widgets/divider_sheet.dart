@@ -8,7 +8,7 @@ class DividerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 358,
+      width: double.infinity,
       height: 1,
       decoration: BoxDecoration(color: L_GREY),
     );

@@ -8,7 +8,7 @@ class DividerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 309.16,
+      width: double.infinity,
       height: 1,
       decoration: BoxDecoration(color: L_GREY),
     );

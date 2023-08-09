@@ -1,15 +1,16 @@
 /*
-전체 게시글(question) 보여주는 page : 무한 스크롤 페이지네이션, 정렬 기능 구현
+전체 게시글(question) 보여주는 page
+무한 스크롤 페이지네이션, 정렬 기능 구현
+bottomTabBar : o
  */
 
 import 'package:board_project/providers/question_firestore.dart';
-import 'package:board_project/widgets/divider_base.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
 import 'package:board_project/screens/rounge/open_board/open_create_screen.dart';
 import 'package:board_project/screens/rounge/open_board/open_detail_screen.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:board_project/providers/user_firestore.dart';
 import '../../../constants/colors.dart';
@@ -20,6 +21,7 @@ import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
 import '../../../widgets/dialog_base.dart';
 import '../../../widgets/divider_board.dart';
+import '../../../widgets/gradient_base.dart';
 import '../../../widgets/null_search.dart';
 import '../../../widgets/sheet_base.dart';
 import '../qna_board/qna_board_screen.dart';
@@ -51,11 +53,10 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   bool isLastPage = false;
 
   // 스크롤컨트롤러 생성
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
-  // 게시글(question) 하나를 눌렀을 때 detail screen에 넘겨줄 해당 게시글의 documentId, documentSnapshot
-  late String questionId;
-  late DocumentSnapshot questionDoc;
+  // 해당 게시물 QuerySnapshot
+  late QuerySnapshot? questionSnapshot;
 
   // 화면에 보여질 게시글 정렬 기준(조회순, 최신순, 좋아요순, 댓글순)
   String sortFilter = '최신순';
@@ -87,31 +88,11 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
       // Widget의 build 이후에 callback을 받기 위한 코드
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         // 테스트용 코드 : DB에 데이터 한꺼번에 생성하는 함수
-        //generateData();
+        // questionFirebase.generateData();
         // DB 데이터 받아오는 함수
         fetchData();
       });
     });
-  }
-
-  // 테스트용 코드 : DB에 데이터 한꺼번에 생성하는 함수
-  Future<void> generateData() async {
-    // question collection의 reference 받아오는 코드
-    CollectionReference questionsRef = questionFirebase.questionReference;
-
-    // 22번 question DB 데이터 생성 및 저장
-    for (int i = 0; i < 22; i++) {
-      await questionsRef.add({
-        'title': '$i번째 제목',
-        'content': '$i번째 내용',
-        'author': user,
-        'create_date': DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
-        'modify_date': 'Null',
-        'category': '$i번째 카테고리',
-        'views_count': COMMON_INIT_COUNT,
-        'isLikeClicked': false,
-      });
-    }
   }
 
   // DB 데이터 받아오는 함수
@@ -153,21 +134,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     });
   }
 
-  // 해당 question 데이터 저장하는 변수
-  Future<void> fetchQuestion(Question question) async {
-    QuerySnapshot snapshot = await questionFirebase.questionReference
-        .where('title', isEqualTo: question.title)
-        .where('content', isEqualTo: question.content)
-        .where('author', isEqualTo: question.author)
-        .where('create_date', isEqualTo: question.create_date)
-        .get();
-
-    if (snapshot.docs.isNotEmpty) {
-      questionDoc = snapshot.docs.first;
-      questionId = questionDoc.id;
-    }
-  }
-
   // 스크롤 이벤트를 처리하는 함수
   void _scrollListener() {
     // 클라이언트를 가지고 있는지 확인하여 아니라면 종료
@@ -197,7 +163,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   // 검색창 입력 내용 controller
   TextEditingController searchTextController = TextEditingController();
   // DB에서 검색한 게시글을 가져오는데 활용되는 변수
-  Future<QuerySnapshot>? searchResults = null;
+  Future<QuerySnapshot>? searchResults;
 
   // X 아이콘 클릭시 검색어 삭제
   emptyTextFormField() {
@@ -226,10 +192,10 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
         if (index == questions.length) {
           // 로딩 중이라면 로딩 circle 보여줌
           if (isLoading) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else {
             // 로딩 중이 아니라면 빈 위젯 보여줌
-            return SizedBox.shrink();
+            return const SizedBox.shrink();
           }
         }
 
@@ -286,10 +252,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
 
                 sortQuestion(searchBoardResult);
 
-                // if (resetViews != searchBoardResult[index].views_count && isResetViews) {
-                //   searchBoardResult[index].views_count = resetViews;
-                // }
-
                 return Padding(padding: EdgeInsets.only(top: 3, bottom: 3, left: 15, right: 15), child: _buildItemWidget(searchBoardResult[index]));
               },
               controller: _scrollController,
@@ -313,16 +275,19 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
       body: Column(
         children: <Widget>[
           Row(
-            children: [
+            children: [ /// 자유게시판, 질문하기 클래스로 각각 분리하기
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     InkWell(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) {
-                          return OpenBoardScreen();
-                        }));
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                                OpenBoardScreen(),
+                          ),
+                        );
                       },
                       child: Text('자유게시판',
                         style: TextStyle(
@@ -353,7 +318,12 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                     children: [
                       InkWell(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => QnaBoardScreen()),);
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  QnaBoardScreen(),
+                            ),
+                          );
                         },
                         child: Text('질문하기',
                           style: TextStyle(
@@ -379,9 +349,9 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                   )
               )
             ],
-          ),
+          ),///
           // 검색창
-          Padding(
+          Padding( ///검색창 클래스 분리하기
             padding: const EdgeInsets.all(12),
             child: TextFormField(
               // 검색창 controller
@@ -423,7 +393,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
               onFieldSubmitted: controlSearching,
             ),),
           // 필터링
-          Container(
+          Container( ///필터링 클래스 분리
             height: 30,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -438,7 +408,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
 
                         return Padding(
                           padding: EdgeInsets.symmetric(horizontal: 5),
-                          child: ElevatedButton(
+                          child: ElevatedButton( ///필터링 버튼 분리
                             child: Text(currentFilter,
                               style: TextStyle(
                                 fontSize: 14,
@@ -521,7 +491,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
             )
           ),
           // 정렬 기준
-          Align(
+          Align( ///정렬 기준 클래스 분리
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               icon: Icon(Icons.swap_vert_sharp, color: D_GREY,),
@@ -553,7 +523,8 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
               },
             ),
           ),
-          DividerBase(),
+          // 정보 배너
+          GradientBase(),
           // 게시글 리스트
           Expanded(
               child: searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters)
@@ -638,7 +609,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                       ButtonYes(
                         name: '예',
                         onPressed: () async {
-                          Navigator.of(context, rootNavigator: true).push(
+                          Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (BuildContext context) => OpenCreateScreen(),
                             ),
@@ -661,11 +632,11 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   }
 
   // 게시글 목록을 보여줄 UI 위젯
-  Widget _buildItemWidget(Question question) {
+  Widget _buildItemWidget(Question question) {///Row , Column 별 children 각각 분리
     resetViews = question.views_count;
     return Column(
       children: <Widget>[
-        ListTile(
+        ListTile( ///타일 분리
           contentPadding: EdgeInsets.all(0),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -673,7 +644,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
               Row(
                 children: [
                   // 카테고리
-                  Stack(
+                  Stack( ///클래스 분리
                     children: [
                       Container(
                         width: 57,
@@ -750,7 +721,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
               Padding(
                 padding: EdgeInsets.only(top: 5),
                 child: Row(children: [
-                  Container(
+                  Container( ///컨테이너 분리
                     child: Row(
                       children: [
                         // 좋아요
@@ -797,20 +768,20 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
             ],
           ),
           onTap: () async {
-            await fetchQuestion(question);
+            questionSnapshot = await questionFirebase.fetchQuestion(question);
             // 게시글 중 하나를 눌렀을 경우 해당 게시글의 조회수 증가
             await increaseViewsCount(question);
-            // 게시글의 상세화면을 보여주는 detail screen으로 화면 전환
-            await Navigator.of(context, rootNavigator: true).push(
+
+            await Navigator.of(context).push(
               MaterialPageRoute(
                   builder: (BuildContext context) =>
-                      OpenDetailScreen(data: question, dataId: questionId, dataDoc: questionDoc)),
+                      OpenDetailScreen(data: question, dataId: questionSnapshot!.docs.first.id, dataDoc: questionSnapshot!.docs.first)),
             );
 
             // 조회수 반영 개선을 위한 코드
             isResetViews = true;
             setState(() {
-              resetViews = (questionDoc.data() as Map<String, dynamic>)['views_count'];
+              resetViews = (questionSnapshot!.docs.first.data() as Map<String, dynamic>)['views_count'];
               if (question.views_count != resetViews) {
                 question.views_count = resetViews;
               }
@@ -838,7 +809,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   // 조회수 증가시키는 함수
   Future<void> increaseViewsCount(Question question) async {
     // 해당 question의 조회수를 증가된 값으로 업데이트
-    await questionFirebase.questionReference.doc(questionId).update({
+    await questionFirebase.questionReference.doc(questionSnapshot!.docs.first.id).update({
       'views_count': FieldValue.increment(INCREASE_COUNT),
     });
 
