@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "205938362362",
+    "project_id": "dsom-cc8ad",
+    "storage_bucket": "dsom-cc8ad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:205938362362:android:dfa7114f61dc7b6f064643",
+        "android_client_info": {
+          "package_name": "com.example.board_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "205938362362-jacijkgjspfrnufpie8bhtco570kff6o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-2ZpdcJaakgCBo88x9D-3CBjB1dTgvIc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "205938362362-jacijkgjspfrnufpie8bhtco570kff6o.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "205938362362-b39mdem1udbb35an94mis20cprn8dsn5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.boardProject"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
