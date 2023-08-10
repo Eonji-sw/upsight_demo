@@ -1,5 +1,6 @@
 /*
 캘린더 화면
+bottomTabBar : o
  */
 
 import 'package:flutter/cupertino.dart';
@@ -10,6 +11,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:board_project/providers/schedule_firestore.dart';
 import 'package:board_project/models/schedule.dart';
 import 'dart:async';
+import '../constants/size.dart';
 import '../providers/user_firestore.dart';
 
 
@@ -74,7 +76,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         schedule.start_date,
         schedule.end_date,
         schedule.type == 0 ? const Color(0xFFAFD67D) : schedule.type == 2 ? const Color(0xFFD7A6FE) : const Color(0xFFFFB444),
-
         schedule.isSwitched,
       );
     }).toList();
@@ -97,53 +98,67 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double statusBarSize = MediaQuery.of(context).padding.top;
+
     return Scaffold(
-        body: SfCalendar(
-          // 캘린더 보이는 방식
-          view: CalendarView.month,
-          dataSource: MeetingDataSource(meetings),
-          monthViewSettings: MonthViewSettings(
-              appointmentDisplayMode: MonthAppointmentDisplayMode.appointment),
-          // 캘린더 오늘 날짜 border 색
-          todayHighlightColor: Color(0xFF585858),
-          // 캘린더 오늘 날짜 스타일
-          todayTextStyle: TextStyle(
-            color: WHITE,
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-          ),
-          // 캘린더 구분선 색
-          cellBorderColor: Color(0xFFE5EAEF),
+        body: Padding(
+          padding: EdgeInsets.only(top: statusBarSize, bottom: BOTTOM_TAB),
+          child: SfCalendar(
+            // 캘린더 보이는 방식
+            view: CalendarView.month,
+            dataSource: MeetingDataSource(meetings),
+            monthViewSettings: MonthViewSettings(
+              appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+              // 현재 달 제외하고 날짜 표시 x
+              showTrailingAndLeadingDates: false,
+            ),
+            // 캘린더 오늘 날짜 border 색
+            todayHighlightColor: D_GREY,
+            // 캘린더 오늘 날짜 스타일
+            todayTextStyle: TextStyle(
+              color: WHITE,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+            // 캘린더 구분선 색
+            cellBorderColor: L_GREY,
 
-          // 캘린더 헤더 날짜 표시
-          headerDateFormat: 'yyy MM',
-          // 캘린더 헤더 날짜 스타일
-          headerStyle: CalendarHeaderStyle(
-              textStyle: TextStyle(
-                color: BLACK,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+            // 캘린더 헤더 날짜 표시
+            headerDateFormat: 'yyyy년 MM월',
+            // 캘린더 헤더 날짜 스타일
+            headerStyle: CalendarHeaderStyle(
+                textStyle: TextStyle(
+                  color: BLACK,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center
+            ),
+
+            // 캘린더 뷰 요일 스타일
+            viewHeaderStyle: ViewHeaderStyle(
+              backgroundColor: WHITE,
+              dateTextStyle: TextStyle(
+                color: D_GREY,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
               ),
-              textAlign: TextAlign.center
-          ),
+            ),
 
-          // 캘린더 뷰 요일 스타일
-          viewHeaderStyle: ViewHeaderStyle(
-            backgroundColor: Color(0xFFE5EAEF),
+            // 캘린더 이전/다음 달 버튼 표시
+            showNavigationArrow: true,
           ),
-
-          // 캘린더 이전/다음 달 버튼 표시
-          showNavigationArrow: true,
         ),
         //일정 추가 버튼 생성
         floatingActionButton: buildFloating(context));
   }
+
   // 일정 추가 버튼 UI
   Stack buildFloating(BuildContext context) {
     return Stack(
       children: [
         Positioned(
-          bottom: kBottomNavigationBarHeight, // 아래쪽 여백
+          bottom: BOTTOM_TAB, // 아래쪽 여백
           right: 0, // 오른쪽 여백
           child: FloatingActionButton(
             onPressed: () {
@@ -194,17 +209,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       padding: EdgeInsets.only(top: 8),
                                       child: Row(
                                         children: <Widget>[
-                                          Radio(
-                                            value: index,
-                                            groupValue: selectedRadio,
-                                            activeColor: selectedRadio == index ? colorList[index] : TEXT_GREY,
-                                            onChanged: (int? value) {
-                                              setState(() {
-                                                if (value != selectedRadio) { // 값이 변경되었을 때만 setState 호출
-                                                  setDialogState(() => selectedRadio = value);
-                                                }
-                                              });
-                                            },
+                                          Transform.scale(
+                                            scale: 0.75,
+                                            child: Radio(
+                                              value: index,
+                                              groupValue: selectedRadio,
+                                              activeColor: selectedRadio == index ? colorList[index] : TEXT_GREY,
+                                              onChanged: (int? value) {
+                                                setState(() {
+                                                  if (value != selectedRadio) { // 값이 변경되었을 때만 setState 호출
+                                                    setDialogState(() => selectedRadio = value);
+                                                  }
+                                                });
+                                              },
+                                            ),
                                           ),
                                           Text(lst[index],
                                             style: TextStyle(
@@ -374,7 +392,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               Text(
                                                 '${DateFormat('HH.mm').format(selectedStartTime)}',
                                                 style: TextStyle(
-                                                  color: switchValue ? Colors.grey : Colors.black,
+                                                  color: switchValue ? D_GREY : BLACK,
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.w400,
                                                 ),
@@ -384,7 +402,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               Text(
                                                 '${DateFormat('HH.mm').format(selectedEndTime)}',
                                                 style: TextStyle(
-                                                  color: switchValue ? Colors.grey : Colors.black,
+                                                  color: switchValue ? D_GREY : BLACK,
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.w400,
                                                 ),
@@ -414,7 +432,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   children: [
                                     Text('종일',
                                       style: TextStyle(
-                                      color: TEXT_GREY,
+                                      color: switchValue ? BLACK : TEXT_GREY,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),),
@@ -422,7 +440,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       scale: 0.7, // 원하는 크기 비율 조정
                                       child: CupertinoSwitch(
                                         value: switchValue,
-                                        activeColor: CupertinoColors.activeBlue,
+                                        activeColor: KEY_BLUE,
                                         onChanged: (bool value) {
                                           setDialogState(() => switchValue = value);
                                         },
@@ -546,7 +564,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             backgroundColor: KEY_BLUE,
             elevation: 0, // 그림자를 제거하기 위해 elevation을 0으로 설정
             shape: CircleBorder(),
-            child: Icon(Icons.edit, color: WHITE),
+            child: Icon(Icons.edit_calendar_outlined, color: WHITE),
           ),
 
         ),

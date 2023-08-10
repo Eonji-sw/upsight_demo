@@ -15,3 +15,6 @@ const int MAX_CONTNET_LENGTH = 1500;
 
 // open_board
 const int MAX_LINE_BOARD = 3;
+
+// tab
+const double BOTTOM_TAB = 77.0;

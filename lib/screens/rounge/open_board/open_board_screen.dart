@@ -590,7 +590,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     return Stack(
       children: [
         Positioned(
-          bottom: kBottomNavigationBarHeight, // 아래쪽 여백
+          bottom: BOTTOM_TAB, // 아래쪽 여백
           right: 0, // 오른쪽 여백
           child: FloatingActionButton(
             onPressed: () {
