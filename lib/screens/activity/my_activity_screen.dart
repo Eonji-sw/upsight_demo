@@ -262,8 +262,9 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                                 SnackBar(content: Text('로그아웃 되었습니다.')),
                               );
                             final auth = Provider.of<FirebaseAuthProvider>(context, listen: false);
-                            if(auth.user == null)
-                              Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil("/login", (route)=>false);
+                            if(auth.user == null) {
+                              Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil("/login", (Route<dynamic> route)=>false);
+                            }
                           },
                         ),
                       ],
