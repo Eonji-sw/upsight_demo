@@ -1,5 +1,6 @@
 import 'package:board_project/router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,7 @@ import 'package:board_project/screens/login_secure.dart';
 
 void main() async {
   // calendar 한국어 설정을 위한 코드
-  await initializeDateFormatting();
+  await initializeDateFormatting('ko_KR', null);
   // 플랫폼 채널의 위젯 바인딩을 보장하기 위한 코드
   WidgetsFlutterBinding.ensureInitialized();
   // Firebase를 초기화 하기 위해서 네이티브 코드를 호출
@@ -38,6 +39,15 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: KEY_BLUE),
           useMaterial3: true,
         ),
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: [
+          const Locale('en', ''),
+          const Locale('ko', ''),
+        ],
         // Route를 관리하는 함수를 설정
         onGenerateRoute: generateRoute,
         initialRoute: authRoute, // 앱을 처음 시작할 때 표시할 첫 페이지 설정

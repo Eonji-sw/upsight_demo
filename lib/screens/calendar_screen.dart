@@ -78,9 +78,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
           todayHighlightColor: Color(0xFF585858),
           // 캘린더 오늘 날짜 스타일
           todayTextStyle: TextStyle(
-            color: Colors.white,
+            color: WHITE,
             fontSize: 14,
-            fontFamily: 'Pretendard Variable',
             fontWeight: FontWeight.w400,
           ),
           // 캘린더 구분선 색
@@ -91,9 +90,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
           // 캘린더 헤더 날짜 스타일
           headerStyle: CalendarHeaderStyle(
               textStyle: TextStyle(
-                color: Colors.black,
+                color: BLACK,
                 fontSize: 20,
-                fontFamily: 'Pretendard Variable',
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center
