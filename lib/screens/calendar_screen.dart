@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:board_project/providers/schedule_firestore.dart';
 import 'package:board_project/models/schedule.dart';
+import 'dart:async';
 import '../providers/user_firestore.dart';
 
 
@@ -18,8 +19,11 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  ScheduleFirebase scheduleFirebase = ScheduleFirebase();
   UserFirebase userFirebase = UserFirebase();
+  ScheduleFirebase scheduleFirebase = ScheduleFirebase();
+
+  // 스케줄 데이터 스트림을 가져와 scheduleStream에 할당
+  late Stream<List<Schedule>> scheduleStream; // 스케줄 데이터 스트림
 
   DateTime selectedStartDate = DateTime.now();
   DateTime selectedStartTime = DateTime.now();
@@ -40,20 +44,43 @@ class _CalendarScreenState extends State<CalendarScreen> {
   // 현재 로그인한 사용자 name
   late String user;
 
-  // Stream to get the 스케줄 data
-  late Stream<List<Schedule>> scheduleStream;
+  List<Meeting> meetings = <Meeting>[];
 
   @override
   void initState() {
     super.initState();
+    initializeData();
     setState(() {
       // firebase 객체 초기화
       scheduleFirebase.initDb();
       userFirebase.initDb();// Initialize the database
-      scheduleStream = scheduleFirebase.getSchedules(); // Get the schedule data through the stream
     });
     // user_id 값을 가져와서 user 변수에 할당
     fetchUser();
+  }
+
+  // 비동기로 데이터를 초기화하고 가져오는 작업 수행
+  Future<void> initializeData() async {
+    // firebase 객체 초기화
+    scheduleFirebase.initDb();
+    // 스케줄 데이터 스트림을 가져와 scheduleStream에 할당
+    scheduleStream = scheduleFirebase.getSchedules();
+    // 파이어베이스에서 데이터 가져와 meetings 리스트 초기화
+    List<Schedule> fetchedSchedules = await scheduleFirebase.fetchUpdatedSchedules();
+    // Convert fetched schedules to Meeting objects and store in the meetings list
+    meetings = fetchedSchedules.map((schedule) {
+      return Meeting(
+        schedule.title,
+        schedule.start_date,
+        schedule.end_date,
+        schedule.type == 0 ? const Color(0xFFAFD67D) : schedule.type == 2 ? const Color(0xFFD7A6FE) : const Color(0xFFFFB444),
+
+        schedule.isSwitched,
+      );
+    }).toList();
+
+    // 화면을 다시 그리도록 갱신
+    setState(() {});
   }
 
   // 사용자 데이터를 가져와서 user 변수에 할당하는 함수
@@ -74,6 +101,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         body: SfCalendar(
           // 캘린더 보이는 방식
           view: CalendarView.month,
+          dataSource: MeetingDataSource(meetings),
+          monthViewSettings: MonthViewSettings(
+              appointmentDisplayMode: MonthAppointmentDisplayMode.appointment),
           // 캘린더 오늘 날짜 border 색
           todayHighlightColor: Color(0xFF585858),
           // 캘린더 오늘 날짜 스타일
@@ -305,7 +335,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         ),
                                         // 일정 시작 및 종료 시간
                                         CupertinoButton(
-                                          onPressed: () {
+                                          onPressed: switchValue ? null : () {
                                             showModalBottomSheet(
                                               context: context,
                                               builder: (BuildContext context) {
@@ -344,7 +374,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               Text(
                                                 '${DateFormat('HH.mm').format(selectedStartTime)}',
                                                 style: TextStyle(
-                                                  color: BLACK,
+                                                  color: switchValue ? Colors.grey : Colors.black,
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.w400,
                                                 ),
@@ -354,7 +384,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               Text(
                                                 '${DateFormat('HH.mm').format(selectedEndTime)}',
                                                 style: TextStyle(
-                                                  color: BLACK,
+                                                  color: switchValue ? Colors.grey : Colors.black,
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.w400,
                                                 ),
@@ -539,9 +569,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     await scheduleFirebase.addSchedule(newSchedule); // 스케줄 추가
 
-    Navigator.pop(context); // 대화 상자 닫기
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (BuildContext context) => CalendarScreen(),
+      ),
+    );// 대화 상자 닫기
   }
 }
 
+/// 나중에 코드 분리
+class MeetingDataSource extends CalendarDataSource {
+  MeetingDataSource(List<Meeting> source){
+    appointments = source;
+  }
 
+  @override
+  DateTime getStartTime(int index) {
+    return appointments![index].from;
+  }
 
+  @override
+  DateTime getEndTime(int index) {
+    return appointments![index].to;
+  }
+
+  @override
+  String getSubject(int index) {
+    return appointments![index].eventName;
+  }
+
+  @override
+  Color getColor(int index) {
+    return appointments![index].background;
+  }
+
+  @override
+  bool isAllDay(int index) {
+    return appointments![index].isAllDay;
+  }
+}
+
+class Meeting {
+  Meeting(this.eventName, this.from, this.to, this.background, this.isAllDay);
+
+  String eventName;
+  DateTime from;
+  DateTime to;
+  Color background;
+  bool isAllDay;
+}
