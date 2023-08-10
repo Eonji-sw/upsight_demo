@@ -1,7 +1,10 @@
+import 'package:board_project/providers/user_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/screens/login_secure.dart';
 import 'package:provider/provider.dart';
-import 'package:board_project/screens/model_login.dart';
+import 'package:board_project/models/model_login.dart';
+
+
 class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -20,7 +23,7 @@ class LoginScreen extends StatelessWidget {
               padding: EdgeInsets.all(8.0),
               child: Divider(thickness: 1),
             ),
-            RegisterButton(),
+          AccountButtons(),
           ],
         ),
       ),
@@ -28,6 +31,32 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
+//하단 회원가입 및 비번 변경 버튼 부분
+class AccountButtons extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 1,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: RegisterButton(),
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: ResetPasswordButton(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+//이메일 입력칸
 class EmailInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -47,6 +76,7 @@ class EmailInput extends StatelessWidget {
   }
 }
 
+//비번 입력칸
 class PasswordInput extends StatelessWidget {
   const PasswordInput({super.key});
 
@@ -68,14 +98,16 @@ class PasswordInput extends StatelessWidget {
   }
 }
 
+//로그인 버튼
 class LoginButton extends StatelessWidget {
   const LoginButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authClient =
+    final auth =
     Provider.of<FirebaseAuthProvider>(context, listen: false);
     final loginField = Provider.of<LoginFieldModel>(context, listen: false);
+
     return Container(
       width: MediaQuery.of(context).size.width * 0.85,
       height: MediaQuery.of(context).size.height * 0.05,
@@ -86,17 +118,21 @@ class LoginButton extends StatelessWidget {
           ),
         ),
         onPressed: () async {
-          await authClient
+          await auth
               .signIn(loginField.email, loginField.password)
               .then((loginStatus) {
             if (loginStatus == AuthStatus.loginSuccess) {
-              logger.d("로그인 성공");
-              logger.d(authClient.authClient.currentUser!.email);
+              logger.i("로그인 성공");
+              //logger.d(auth.authClient.currentUser!.email);
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(
-                  SnackBar(content: Text(authClient.authClient.currentUser!.email! + '님 환영합니다!')), // 닉네임 가져온느거로 수정해야함
+                  SnackBar(content: Text(auth.user!.email! + '님 환영합니다!')), // 닉네임 가져온느거로 수정해야함
                 );
+              UserFirebase().getUserById(auth.user!.uid)
+              .then((result){Map a= result as Map<String, dynamic>;
+              logger.d(a);});
+
               Navigator.pushReplacementNamed(context, '/tab');
             } else {
               logger.d(loginField.email);
@@ -115,6 +151,7 @@ class LoginButton extends StatelessWidget {
   }
 }
 
+//회원가입 버튼
 class RegisterButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -124,7 +161,24 @@ class RegisterButton extends StatelessWidget {
         Navigator.of(context).pushNamed('/register');
       },
       child: Text(
-        '이메일로 간단하게 회원가입 하기',
+        '회원가입',
+        style: TextStyle(color: theme.primaryColor),
+      ),
+    );
+  }
+}
+
+//비번 초기화 버튼
+class ResetPasswordButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextButton(
+      onPressed: () {
+        Navigator.of(context).pushNamed('/reset_password');
+      },
+      child: Text(
+        '비밀번호를 잊으셨나요?',
         style: TextStyle(color: theme.primaryColor),
       ),
     );
