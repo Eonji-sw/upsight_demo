@@ -11,6 +11,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:board_project/providers/schedule_firestore.dart';
 import 'package:board_project/models/schedule.dart';
 import 'dart:async';
+import '../constants/list.dart';
 import '../constants/size.dart';
 import '../providers/user_firestore.dart';
 
@@ -33,11 +34,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime selectedEndTime = DateTime.now();
 
   String text = '';
-  List lst = ['청약', '목표', '일정'];
   bool switchValue = false;
-  int? selectedRadio = 0;
-
-  List colorList = [CALENDAR_GREEN, CALENDAR_YELLOW, CALENDAR_PURPLE];
+  int? selectedRadio = COMMON_INIT_COUNT;
 
   //스케줄 이름, 상세 내용 초기화
   String title = '';
@@ -164,7 +162,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             onPressed: () {
               setState(() {
                 title = ''; // 제목 초기화
-                selectedRadio = 0; // 라디오 버튼 초기화
+                selectedRadio = COMMON_INIT_COUNT; // 라디오 버튼 초기화
                 selectedStartDate = DateTime.now(); // 시작 날짜 초기화
                 selectedStartTime = DateTime.now(); // 시작 시간 초기화
                 selectedEndDate = DateTime.now(); // 종료 날짜 초기화
@@ -176,7 +174,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 context: context,
                 builder: (BuildContext context) {
                   return Dialog(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ROUND_BORDER)),
                     backgroundColor: Colors.transparent,
                     child: SingleChildScrollView(
                       child: StatefulBuilder(
@@ -187,7 +185,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: WHITE,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(ROUND_BORDER),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -214,7 +212,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                             child: Radio(
                                               value: index,
                                               groupValue: selectedRadio,
-                                              activeColor: selectedRadio == index ? colorList[index] : TEXT_GREY,
+                                              activeColor: selectedRadio == index ? ScheduleColorList[index] : TEXT_GREY,
                                               onChanged: (int? value) {
                                                 setState(() {
                                                   if (value != selectedRadio) { // 값이 변경되었을 때만 setState 호출
@@ -224,9 +222,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               },
                                             ),
                                           ),
-                                          Text(lst[index],
+                                          Text(ScheduleTypeList[index],
                                             style: TextStyle(
-                                              color: selectedRadio == index ? colorList[index] : TEXT_GREY,
+                                              color: selectedRadio == index ? ScheduleColorList[index] : TEXT_GREY,
                                               fontSize: 12,
                                               fontWeight: FontWeight.w400,
                                             ),
@@ -513,7 +511,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                             // 취소 버튼을 눌렀을 때 변경사항을 초기화
                                             setState(() {
                                               title = ''; // 제목 초기화
-                                              selectedRadio = 0; // 라디오 버튼 초기화
+                                              selectedRadio = COMMON_INIT_COUNT; // 라디오 버튼 초기화
                                               selectedStartDate = DateTime.now(); // 시작 날짜 초기화
                                               selectedStartTime = DateTime.now(); // 시작 시간 초기화
                                               selectedEndDate = DateTime.now(); // 종료 날짜 초기화
@@ -571,8 +569,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ],
     );
   }
+
+  // DB에 입력받은 스케줄 데이터 생성하여 추가
   Future<void> createSchedule(BuildContext context) async {
-    // 입력받은 데이터로 새로운 스케줄 데이터 생성하여 DB에 추가
     Schedule newSchedule = Schedule(
       id: user,
       title: title,
@@ -591,7 +590,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       MaterialPageRoute(
         builder: (BuildContext context) => CalendarScreen(),
       ),
-    );// 대화 상자 닫기
+    );
   }
 }
 

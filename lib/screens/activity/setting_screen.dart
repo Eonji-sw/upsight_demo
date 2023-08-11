@@ -60,7 +60,7 @@ class _SettingScreenState extends State<SettingScreen> {
           decoration: ShapeDecoration(
             color: WHITE,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(ROUND_BORDER),
             ),
             shadows: [
               BoxShadow(

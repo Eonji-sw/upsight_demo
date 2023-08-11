@@ -51,20 +51,7 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                       child: Container(
                         width: 358,
                         height: 205.75,
-                        decoration: ShapeDecoration(
-                            color: WHITE,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)
-                            ),
-                            shadows: [
-                              BoxShadow(
-                                color: BOX_SHADOW_COLOR,
-                                blurRadius: 4,
-                                offset: Offset(0, 0),
-                                spreadRadius: 2,
-                              )
-                            ]
-                        ),
+                        decoration: buildShapeDecoration(),
                         child: Column(
                           children: [
                             Padding(
@@ -117,7 +104,8 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                                                 color: SUB_BLUE,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w400,
-                                              ),),
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       )
@@ -167,20 +155,7 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
                       child: Container(
                         width: 352,
                         height: 334,
-                        decoration: ShapeDecoration(
-                          color: WHITE,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: BOX_SHADOW_COLOR,
-                              blurRadius: 4,
-                              offset: Offset(0, 0),
-                              spreadRadius: 2,
-                            )
-                          ],
-                        ),
+                        decoration: buildShapeDecoration(),
                         child: Column(
                           children: [
                             // 사용자 정보
@@ -293,6 +268,24 @@ class _MyActivityScreenState extends State<MyActivityScreen> {
               ),
             )
         )
+    );
+  }
+
+  // shapeDecoration 반환하는 함수
+  ShapeDecoration buildShapeDecoration() {
+    return ShapeDecoration(
+        color: WHITE,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(ROUND_BORDER)
+        ),
+        shadows: [
+          BoxShadow(
+            color: BOX_SHADOW_COLOR,
+            blurRadius: 4,
+            offset: Offset(0, 0),
+            spreadRadius: 2,
+          )
+        ]
     );
   }
 }
