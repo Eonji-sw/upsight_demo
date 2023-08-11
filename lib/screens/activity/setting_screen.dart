@@ -1,8 +1,14 @@
+/*
+설정 화면
+bottomTabBar : x
+ */
+
 import 'package:board_project/screens/activity/my_activity_screen.dart';
 import 'package:board_project/widgets/divider_sheet.dart';
 import 'package:flutter/material.dart';
 
 import '../../constants/colors.dart';
+import '../../constants/size.dart';
 
 class SettingScreen extends StatefulWidget {
   @override
@@ -38,17 +44,26 @@ class _SettingScreenState extends State<SettingScreen> {
             },
             color: BLACK,
             icon: Icon(Icons.arrow_back_ios_new)),
+        actions: [
+          IconButton(
+              onPressed: () {},
+              icon: Icon(Icons.notifications_none, color: BLACK,)
+          ),
+        ],
       ),
       // body
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(top: 30),
+          padding: EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
           child: Container(
-            width: 384,
-            height: 224,
-            decoration: BoxDecoration(
+            width: 352,
+            height: 630.41,
+            decoration: ShapeDecoration(
               color: WHITE,
-              boxShadow: [
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(ROUND_BORDER),
+              ),
+              shadows: [
                 BoxShadow(
                   color: BOX_SHADOW_COLOR,
                   blurRadius: 4,

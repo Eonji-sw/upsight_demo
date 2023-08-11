@@ -1,5 +1,6 @@
 /*
 캘린더 화면
+bottomTabBar : o
  */
 import 'package:board_project/models/user.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,6 +12,10 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:board_project/providers/schedule_firestore.dart';
 import 'package:board_project/models/schedule.dart';
 import 'dart:async';
+
+import '../constants/list.dart';
+import '../constants/size.dart';
+
 import '../providers/user_firestore.dart';
 
 
@@ -32,9 +37,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime selectedEndTime = DateTime.now();
 
   String text = '';
-  List lst = ['청약', '목표', '일정'];
   bool switchValue = false;
-  int? selectedRadio = 0;
+
+  int? selectedRadio = COMMON_INIT_COUNT;
+
+
   //스케줄 이름, 상세 내용 초기화
   String title = '';
   String description = '';
@@ -43,6 +50,43 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
 
   List<Meeting> meetings = <Meeting>[];
+
+  @override
+  void initState() {
+    super.initState();
+    initializeData();
+    setState(() {
+      // firebase 객체 초기화
+      scheduleFirebase.initDb();
+      userFirebase.initDb();// Initialize the database
+    });
+    // user_id 값을 가져와서 user 변수에 할당
+    fetchUser();
+  }
+
+
+  // 비동기로 데이터를 초기화하고 가져오는 작업 수행
+  Future<void> initializeData() async {
+    // firebase 객체 초기화
+    scheduleFirebase.initDb();
+    // 스케줄 데이터 스트림을 가져와 scheduleStream에 할당
+    scheduleStream = scheduleFirebase.getSchedules();
+    // 파이어베이스에서 데이터 가져와 meetings 리스트 초기화
+    List<Schedule> fetchedSchedules = await scheduleFirebase.fetchUpdatedSchedules();
+    // Convert fetched schedules to Meeting objects and store in the meetings list
+    meetings = fetchedSchedules.map((schedule) {
+      return Meeting(
+        schedule.title,
+        schedule.start_date,
+        schedule.end_date,
+        schedule.type == 0 ? const Color(0xFFAFD67D) : schedule.type == 2 ? const Color(0xFFD7A6FE) : const Color(0xFFFFB444),
+        schedule.isSwitched,
+      );
+    }).toList();
+
+    // 화면을 다시 그리도록 갱신
+    setState(() {});
+  }
 
   // 사용자 데이터를 가져와서 user 변수에 할당하는 함수
   Future<void> fetchUser() async {
@@ -59,93 +103,74 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
 
   @override
-  void initState() {
-    super.initState();
-    initializeData();
-    scheduleFirebase.initDb();
-    userFirebase.initDb();// 비동기 메서드 호출
-    fetchUser();
-  }
-
-
-// 비동기로 데이터를 초기화하고 가져오는 작업 수행
-  Future<void> initializeData() async {
-    // firebase 객체 초기화
-    scheduleFirebase.initDb();
-    // 스케줄 데이터 스트림을 가져와 scheduleStream에 할당
-    scheduleStream = scheduleFirebase.getSchedules();
-    // 파이어베이스에서 데이터 가져와 meetings 리스트 초기화
-    List<Schedule> fetchedSchedules = await scheduleFirebase.fetchUpdatedSchedules();
-    // Convert fetched schedules to Meeting objects and store in the meetings list
-    meetings = fetchedSchedules.map((schedule) {
-      return Meeting(
-        schedule.title,
-        schedule.start_date,
-        schedule.end_date,
-        schedule.type == 0 ? const Color(0xFFAFD67D) : schedule.type == 2 ? const Color(0xFFD7A6FE) : const Color(0xFFFFB444),
-
-        schedule.isSwitched,
-      );
-    }).toList();
-
-    // 화면을 다시 그리도록 갱신
-    setState(() {});
-  }
-
-
-
-
-  @override
   Widget build(BuildContext context) {
+    final double statusBarSize = MediaQuery.of(context).padding.top;
+
     return Scaffold(
-        body: SfCalendar(
-          view: CalendarView.month,
-          dataSource: MeetingDataSource(meetings),
-          monthViewSettings: MonthViewSettings(
-              appointmentDisplayMode: MonthAppointmentDisplayMode.appointment),
-          // 캘린더 오늘 날짜 border 색
-          todayHighlightColor: Color(0xFF585858),
-          // 캘린더 오늘 날짜 스타일
-          todayTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontFamily: 'Pretendard Variable',
-            fontWeight: FontWeight.w400,
-          ),
-          // 캘린더 구분선 색
-          cellBorderColor: Color(0xFFE5EAEF),
-          // 캘린더 헤더 날짜 표시
-          headerDateFormat: 'yyy MM',
-          // 캘린더 헤더 날짜 스타일
-          headerStyle: CalendarHeaderStyle(
-              textStyle: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontFamily: 'Pretendard Variable',
-                fontWeight: FontWeight.w600,
+        body: Padding(
+          padding: EdgeInsets.only(top: statusBarSize, bottom: BOTTOM_TAB),
+          child: SfCalendar(
+            // 캘린더 보이는 방식
+            view: CalendarView.month,
+            dataSource: MeetingDataSource(meetings),
+            monthViewSettings: MonthViewSettings(
+              appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+              // 현재 달 제외하고 날짜 표시 x
+              showTrailingAndLeadingDates: false,
+            ),
+            // 캘린더 오늘 날짜 border 색
+            todayHighlightColor: D_GREY,
+            // 캘린더 오늘 날짜 스타일
+            todayTextStyle: TextStyle(
+              color: WHITE,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+            // 캘린더 구분선 색
+            cellBorderColor: L_GREY,
+
+            // 캘린더 헤더 날짜 표시
+            headerDateFormat: 'yyyy년 MM월',
+            // 캘린더 헤더 날짜 스타일
+            headerStyle: CalendarHeaderStyle(
+                textStyle: TextStyle(
+                  color: BLACK,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center
+            ),
+
+            // 캘린더 뷰 요일 스타일
+            viewHeaderStyle: ViewHeaderStyle(
+              backgroundColor: WHITE,
+              dateTextStyle: TextStyle(
+                color: D_GREY,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
               ),
-              textAlign: TextAlign.center
+            ),
+
+            // 캘린더 이전/다음 달 버튼 표시
+            showNavigationArrow: true,
           ),
-          // 캘린더 뷰 요일 스타일
-          viewHeaderStyle: ViewHeaderStyle(
-            backgroundColor: Color(0xFFE5EAEF),
-          ),
-          // 캘린더 이전/다음 달 버튼 표시
-          showNavigationArrow: true,
         ),
         floatingActionButton: buildFloating(context));
   }
+
+  // 일정 추가 버튼 UI
+
   Stack buildFloating(BuildContext context) {
     return Stack(
       children: [
         Positioned(
-          bottom: kBottomNavigationBarHeight, // 아래쪽 여백
+          bottom: BOTTOM_TAB, // 아래쪽 여백
           right: 0, // 오른쪽 여백
           child: FloatingActionButton(
             onPressed: () {
               setState(() {
                 title = ''; // 제목 초기화
-                selectedRadio = 0; // 라디오 버튼 초기화
+                selectedRadio = COMMON_INIT_COUNT; // 라디오 버튼 초기화
                 selectedStartDate = DateTime.now(); // 시작 날짜 초기화
                 selectedStartTime = DateTime.now(); // 시작 시간 초기화
                 selectedEndDate = DateTime.now(); // 종료 날짜 초기화
@@ -156,323 +181,390 @@ class _CalendarScreenState extends State<CalendarScreen> {
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
-                  return AlertDialog(
-                      backgroundColor: Colors.white,
-                      content: Container(
-                        decoration: BoxDecoration(
-                          // color: Colors.white, // 원하는 배경색으로 변경
-                          borderRadius: BorderRadius.circular(16.0),
-                        ),
-                        child: StatefulBuilder(
-                          builder: (__, StateSetter setDialogState) {
-                            return Container(
-                              height: 457.41,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: List<Widget>.generate(3, (int index) {
-                                      return Container(
-                                        width: 120,
-                                        child: RadioListTile<int>(
-                                          value: index,
-                                          groupValue: selectedRadio,
-                                          onChanged: (int? value) {
-                                            if (value != selectedRadio) { // 값이 변경되었을 때만 setState 호출
-                                              setDialogState(() => selectedRadio = value);
-                                              // setState(() => text = 'MyStatefulWidget $value'); 라디오 버튼 선택에따라 ui 업데이트 되는 것 방지
-                                            }
-                                          },
-                                          title: Text(lst[index],
+                  return Dialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ROUND_BORDER)),
+                    backgroundColor: Colors.transparent,
+                    child: SingleChildScrollView(
+                      child: StatefulBuilder(
+                        builder: (__, StateSetter setDialogState) {
+                          return Container(
+                            width: 320,
+                            height: 457.41,
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: WHITE,
+                              borderRadius: BorderRadius.circular(ROUND_BORDER),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // 제목
+                                Text('스케줄 추가',
+                                  style: TextStyle(
+                                    color: BLACK,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                // radio 버튼
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: List<Widget>.generate(3, (int index) {
+                                    return Padding(
+                                      padding: EdgeInsets.only(top: 8),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Transform.scale(
+                                            scale: 0.75,
+                                            child: Radio(
+                                              value: index,
+                                              groupValue: selectedRadio,
+                                              activeColor: selectedRadio == index ? ScheduleColorList[index] : TEXT_GREY,
+                                              onChanged: (int? value) {
+                                                setState(() {
+                                                  if (value != selectedRadio) { // 값이 변경되었을 때만 setState 호출
+                                                    setDialogState(() => selectedRadio = value);
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          Text(ScheduleTypeList[index],
                                             style: TextStyle(
-                                              color: Color(0xFFA7ABAD),
+                                              color: selectedRadio == index ? ScheduleColorList[index] : TEXT_GREY,
                                               fontSize: 12,
-                                              fontFamily: 'Pretendard Variable',
                                               fontWeight: FontWeight.w400,
                                             ),
                                           ),
-                                        ),
-                                      );
-                                    }),
-                                  ),
-                                  // 일정 제목
-                                  Container(
-                                    width: 305,
-                                    height:40,
-                                    decoration: BoxDecoration(
+                                        ],
+                                      ),
+                                    );
+                                  }),
+                                ),
+                                // 일정 제목
+                                Container(
+                                  width: 288,
+                                  height: 30,
+                                  decoration: ShapeDecoration(
+                                    color: L_GREY,
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(width: 0.50, color: L_GREY),
                                       borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: L_GREY ,width: 1),
-                                      color: L_GREY,
                                     ),
-                                    child: TextField(
-                                      onChanged: (value){
-                                        setState(() {
-                                          title=value;
-                                        });
-                                      },
-                                      decoration: InputDecoration(
-                                        hintText: '스케줄 이름',
-                                        border: InputBorder.none,
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 20),
-                                  //구분선 추가
-                                  Divider(height: 1, color: L_GREY),
-                                  Icon(
-                                    Icons.query_builder,
-                                  ),
-                                  Row(
-                                    children: [
-                                      // 일정 시작 날짜 및 종료 날짜
-                                      CupertinoButton(
-                                        onPressed: () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return Container(
-                                                height: 300,
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: CupertinoDatePicker(
-                                                        initialDateTime: selectedStartDate,
-                                                        onDateTimeChanged: (DateTime newDate) {
-                                                          setDialogState(() => selectedStartDate = newDate);
-                                                          // setState(() {
-                                                          //   selectedStartDate = newDate;
-                                                          //   print(selectedStartDate);
-                                                          // });
-                                                        },
-                                                        mode: CupertinoDatePickerMode.date,
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: CupertinoDatePicker(
-                                                        initialDateTime: selectedEndDate,
-                                                        onDateTimeChanged: (DateTime newDate) {
-                                                          setDialogState(() => selectedEndDate = newDate);
-                                                          // setState(() {
-                                                          //   selectedEndDate = newDate;
-                                                          //   print(selectedEndDate);
-                                                          // });
-                                                        },
-                                                        mode: CupertinoDatePickerMode.date,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            },
-                                          );
-                                        },
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              // 일정 시작 날짜 텍스트
-                                              '${DateFormat('yyyy.MM.dd').format(selectedStartDate)}',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                            SizedBox(width: 20,),
-                                            Text(
-                                              // 일정 종료 날짜 텍스트
-                                              '${DateFormat('yyyy.MM.dd').format(selectedEndDate)}',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      // 일정 시작 및 종료 시간
-                                      CupertinoButton(
-                                        onPressed: switchValue
-                                            ? null // If the switch is on (whole day), disable the button
-                                            : () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return Container(
-                                                height: 300,
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: CupertinoDatePicker(
-                                                        initialDateTime: selectedStartTime,
-                                                        onDateTimeChanged: (DateTime newDate) {
-                                                          setDialogState(() => selectedStartTime = newDate);
-                                                        },
-                                                        mode: CupertinoDatePickerMode.time,
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: CupertinoDatePicker(
-                                                        initialDateTime: selectedEndTime,
-                                                        onDateTimeChanged: (DateTime newDate) {
-                                                          setDialogState(() => selectedEndTime = newDate);
-                                                        },
-                                                        mode: CupertinoDatePickerMode.time,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            },
-                                          );
-                                        },
-                                        child: Row(
-                                          children: [
-                                            // 시작 시간 텍스트
-                                            Text(
-                                              '${DateFormat('HH.mm').format(selectedStartTime)}',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: switchValue ? Colors.grey : Colors.black, // Change color if switch is on
-                                              ),
-                                            ),
-                                            SizedBox(width: 20,),
-                                            // 종료 시간 텍스트
-                                            Text(
-                                              '${DateFormat('HH.mm').format(selectedEndTime)}',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: switchValue ? Colors.grey : Colors.black, // Change color if switch is on
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
                                   ),
 
-                                  CupertinoSwitch(
-                                    value: switchValue,
-                                    activeColor: CupertinoColors.activeBlue,
-                                    onChanged: (bool value) {
-                                      print("Switch value changed: $value");
-                                      setDialogState(() => switchValue = value);
+                                  child: TextField(
+                                    onChanged: (value){
+                                      setState(() {
+                                        title = value;
+                                      });
                                     },
-                                  ),
+                                    textAlignVertical: TextAlignVertical.center,
+                                    decoration: InputDecoration(
+                                      hintText: '스케줄 이름을 입력해주세요.',
+                                      hintStyle: TextStyle(
+                                        color: TEXT_GREY,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w300,
 
-                                  //구분선 추가
-                                  Divider(height: 1, color: L_GREY),
-                                  SizedBox(height: 20),
-
-                                  //스케줄 상세 내용
-                                  Row(
-                                    children: [
-                                      Padding(
-                                          padding: EdgeInsets.only(right: 8),
-                                          child:
-                                          Icon(Icons.sticky_note_2_outlined)
-                                        // Image.asset('assets/images/document.png', width: 24, height:24, ),
                                       ),
-                                      SizedBox(
-                                        width: 290,
-                                        child: TextField(
-                                          //description 작성되었는지 확인하여 입력받은 데이터 저장
-                                          onChanged: (value) {
-                                            setState(() {
-                                              description = value;
-                                            });
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+                                    ),
+                                  ),
+                                ),
+                                // 날짜 및 시간 설정
+                                Padding(
+                                  padding: EdgeInsets.only(top: 20),
+                                  child: Container(
+                                    width: 320,
+                                    decoration: ShapeDecoration(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(
+                                          width: 0.50,
+                                          strokeAlign: BorderSide.strokeAlignCenter,
+                                          color: L_GREY,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Icon(Icons.query_builder, color: D_GREY, size: 25,),
+                                        SizedBox(height: 45,)
+                                      ],
+                                    ),
+                                    // 일정 시작 날짜 및 종료 날짜
+                                    Column(
+                                      children: [
+                                        CupertinoButton(
+                                          onPressed: () {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return Container(
+                                                  height: 300,
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: CupertinoDatePicker(
+                                                          initialDateTime: selectedStartDate,
+                                                          onDateTimeChanged: (DateTime newDate) {
+                                                            setDialogState(() => selectedStartDate = newDate);
+                                                          },
+                                                          mode: CupertinoDatePickerMode.date,
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: CupertinoDatePicker(
+                                                          initialDateTime: selectedEndDate,
+                                                          onDateTimeChanged: (DateTime newDate) {
+                                                            setDialogState(() => selectedEndDate = newDate);
+                                                          },
+                                                          mode: CupertinoDatePickerMode.date,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            );
                                           },
-                                          decoration: InputDecoration(
-                                            hintText: '설명 입력',
-                                            border: InputBorder.none,
+                                          padding: EdgeInsets.only(left: 16),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                // 일정 시작 날짜 텍스트
+                                                '${DateFormat('yyyy.MM.dd').format(selectedStartDate)}',
+                                                style: TextStyle(
+                                                  color: BLACK,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                              SizedBox(width: 40,),
+                                              Text(
+                                                // 일정 종료 날짜 텍스트
+                                                '${DateFormat('yyyy.MM.dd').format(selectedEndDate)}',
+                                                style: TextStyle(
+                                                  color: BLACK,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
+                                        // 일정 시작 및 종료 시간
+                                        CupertinoButton(
+                                          onPressed: switchValue ? null : () {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return Container(
+                                                  height: 300,
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: CupertinoDatePicker(
+                                                          initialDateTime: selectedStartTime,
+                                                          onDateTimeChanged: (DateTime newDate) {
+                                                            setDialogState(() => selectedStartTime = newDate);
+                                                          },
+                                                          mode: CupertinoDatePickerMode.time,
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: CupertinoDatePicker(
+                                                          initialDateTime: selectedEndTime,
+                                                          onDateTimeChanged: (DateTime newDate) {
+                                                            setDialogState(() => selectedEndTime = newDate);
+                                                          },
+                                                          mode: CupertinoDatePickerMode.time,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                          padding: EdgeInsets.only(left: 16),
+                                          child: Row(
+                                            children: [
+                                              // 시작 시간 텍스트
+                                              Text(
+                                                '${DateFormat('HH.mm').format(selectedStartTime)}',
+                                                style: TextStyle(
+                                                  color: switchValue ? D_GREY : BLACK,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                              SizedBox(width: 70,),
+                                              // 종료 시간 텍스트
+                                              Text(
+                                                '${DateFormat('HH.mm').format(selectedEndTime)}',
+                                                style: TextStyle(
+                                                  color: switchValue ? D_GREY : BLACK,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  width: 320,
+                                  decoration: ShapeDecoration(
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                        width: 0.50,
+                                        strokeAlign: BorderSide.strokeAlignCenter,
+                                        color: L_GREY,
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                  Spacer(),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        child: Align(
-                                          alignment: Alignment.bottomLeft, // 첫 번째 버튼을 왼쪽 아래로 정렬
-                                          child: TextButton(
-                                            style: ButtonStyle(
-                                              minimumSize: MaterialStateProperty.all(Size(114, 44)), // 버튼 크기 지정
-                                              backgroundColor: MaterialStateProperty.all(WHITE), // 배경색 변경
-                                              shape: MaterialStateProperty.all(
-                                                  RoundedRectangleBorder(
-                                                      side: BorderSide(width: 1, color: L_GREY,),
-                                                      borderRadius: BorderRadius.circular(4)
-                                                  )
-                                              ), // 모서리 둥글게 처리
+                                ),
+                                // 종일 스위치 버튼
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text('종일',
+                                      style: TextStyle(
+                                      color: switchValue ? BLACK : TEXT_GREY,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),),
+                                    Transform.scale(
+                                      scale: 0.7, // 원하는 크기 비율 조정
+                                      child: CupertinoSwitch(
+                                        value: switchValue,
+                                        activeColor: KEY_BLUE,
+                                        onChanged: (bool value) {
+                                          setDialogState(() => switchValue = value);
+                                        },
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                //스케줄 상세 내용
+                                Row(
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsets.only(right: 10),
+                                          child: Icon(Icons.sticky_note_2_outlined, color: ICON_GREY,),
+                                        ),
+                                        SizedBox(height: 40,)
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      width: 190,
+                                      child: TextField(
+                                        //description 작성되었는지 확인하여 입력받은 데이터 저장
+                                        onChanged: (value) {
+                                          setState(() {
+                                            description = value;
+                                          });
+                                        },
+                                        maxLines: 3,
+                                        decoration: InputDecoration(
+                                          hintText: '설명 입력',
+                                          hintStyle: TextStyle(
+                                            color: TEXT_GREY,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                          border: InputBorder.none,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Spacer(),
+                                // 저장 & 취소 버튼
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: Align(
+                                        alignment: Alignment.bottomLeft, // 첫 번째 버튼을 왼쪽 아래로 정렬
+                                        child: TextButton(
+                                          style: ButtonStyle(
+                                            minimumSize: MaterialStateProperty.all(Size(80, 30)), // 버튼 크기 지정
+                                            backgroundColor: MaterialStateProperty.all(WHITE), // 배경색 변경
+                                            shape: MaterialStateProperty.all(
+                                                RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(4)
+                                                )
+                                            ), // 모서리 둥글게 처리
+                                          ),
+                                          child: Text('취소',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: TEXT_GREY,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w500,
                                             ),
-                                            child: Text('취소',
+                                          ),
+                                          onPressed: () {
+                                            // 취소 버튼을 눌렀을 때 변경사항을 초기화
+                                            setState(() {
+                                              title = ''; // 제목 초기화
+                                              selectedRadio = COMMON_INIT_COUNT; // 라디오 버튼 초기화
+                                              selectedStartDate = DateTime.now(); // 시작 날짜 초기화
+                                              selectedStartTime = DateTime.now(); // 시작 시간 초기화
+                                              selectedEndDate = DateTime.now(); // 종료 날짜 초기화
+                                              selectedEndTime = DateTime.now(); // 종료 시간 초기화
+                                              switchValue = false; // 스위치 값 초기화
+                                              description = ''; // 설명 초기화
+                                            });
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Align(
+                                        alignment: Alignment.bottomRight, // 두 번째 버튼을 오른쪽 아래로 정렬
+                                        child: TextButton(
+                                            style: ButtonStyle(
+                                              minimumSize: MaterialStateProperty.all(Size(80, 30)), // 버튼 크기 지정
+                                              backgroundColor: MaterialStateProperty.all(WHITE), // 배경색 변경
+                                              shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(4))), // 모서리 둥글게 처리
+                                            ),
+                                            child: Text('저장',
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
-                                                color: TEXT_GREY,
+                                                color: KEY_BLUE,
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
-                                            onPressed: () {
-                                              // 취소 버튼을 눌렀을 때 변경사항을 초기화
-                                              setState(() {
-                                                title = ''; // 제목 초기화
-                                                selectedRadio = 0; // 라디오 버튼 초기화
-                                                selectedStartDate = DateTime.now(); // 시작 날짜 초기화
-                                                selectedStartTime = DateTime.now(); // 시작 시간 초기화
-                                                selectedEndDate = DateTime.now(); // 종료 날짜 초기화
-                                                selectedEndTime = DateTime.now(); // 종료 시간 초기화
-                                                switchValue = false; // 스위치 값 초기화
-                                                description = ''; // 설명 초기화
-                                              });
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
+                                            onPressed: ()async{
+                                              await createSchedule(context);
+                                            }
                                         ),
                                       ),
-                                      Expanded(
-                                        child: Align(
-                                          alignment: Alignment.bottomRight, // 두 번째 버튼을 오른쪽 아래로 정렬
-                                          child: TextButton(
-                                              style: ButtonStyle(
-                                                minimumSize: MaterialStateProperty.all(Size(114, 44)), // 버튼 크기 지정
-                                                backgroundColor: MaterialStateProperty.all(WHITE), // 배경색 변경
-                                                shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(4))), // 모서리 둥글게 처리
-                                              ),
-                                              child: Text('저장',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: KEY_BLUE,
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              onPressed: ()async{
-                                                await createSchedule(context);
-                                              }
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      )
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    )
                   );
                 },
               );
@@ -480,16 +572,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
             backgroundColor: KEY_BLUE,
             elevation: 0, // 그림자를 제거하기 위해 elevation을 0으로 설정
             shape: CircleBorder(),
-            child: Icon(Icons.edit, color: WHITE),
+            child: Icon(Icons.edit_calendar_outlined, color: WHITE),
           ),
 
         ),
       ],
     );
   }
+
+  // DB에 입력받은 스케줄 데이터 생성하여 추가
   Future<void> createSchedule(BuildContext context) async {
-    print("왜안돼하");
-    // 입력받은 데이터로 새로운 스케줄 데이터 생성하여 DB에 추가
+
     Schedule newSchedule = Schedule(
       id: user,
       title: title,
@@ -508,11 +601,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
       MaterialPageRoute(
         builder: (BuildContext context) => CalendarScreen(),
       ),
-    );// 대화 상자 닫기
+    );
   }
-
 }
 
+/// 나중에 코드 분리
 class MeetingDataSource extends CalendarDataSource {
   MeetingDataSource(List<Meeting> source){
     appointments = source;
@@ -522,6 +615,7 @@ class MeetingDataSource extends CalendarDataSource {
   DateTime getStartTime(int index) {
     return appointments![index].from;
   }
+
 
   @override
   DateTime getEndTime(int index) {
@@ -552,6 +646,4 @@ class Meeting {
   DateTime to;
   Color background;
   bool isAllDay;
-
 }
-

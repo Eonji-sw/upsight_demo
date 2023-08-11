@@ -1,7 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'dart:convert';
+
+import '../providers/user_firestore.dart';
 var logger = Logger();
 
 enum AuthStatus {
@@ -9,31 +12,62 @@ enum AuthStatus {
   registerFail,
   loginSuccess,
   loginFail,
+  resetSuccess,
+  resetFail,
 }
+
+/*class Login {
+  final String email;
+  final String password;
+
+  Login(this.email, this.password);
+
+  Login.fromJson(Map<String, dynamic> json)
+      : email = json['email'],
+        password = json['password'];
+
+  Map<String, dynamic> toJson() => {
+    'email': email,
+    'password': password,
+  };
+}*/
 
 class FirebaseAuthProvider with ChangeNotifier{
   FirebaseAuth authClient;
   User? user;
+  //final FlutterSecureStorage storage = const FlutterSecureStorage();
+
   FirebaseAuthProvider({auth}) : authClient = auth ?? FirebaseAuth.instance;
+
   /// 회원가입
   Future<AuthStatus> createUser(String email, String pw) async {
     try {
-      UserCredential credential = await authClient
-          .createUserWithEmailAndPassword(
+      Map<String, dynamic> userData = {
+        'user_email': email,
+        'user_pw': pw,
+      };
+
+      authClient.createUserWithEmailAndPassword(
         email: email,
         password: pw,
-      );
-      logger.d(credential);
+      )
+      .then((credential) {
+        logger.d("debugging");
+        UserFirebase().createUser(userData);
+        });
+
+      return AuthStatus.registerSuccess;
 
     } on FirebaseAuthException catch (e) {
       logger.d(e.code);
       return AuthStatus.registerFail;
     }
-    return AuthStatus.registerSuccess;
   }
 
   /// 로그인
   Future<AuthStatus> signIn(String email, String pw) async {
+    //if persistence : email pw 변경
+
     try {
       final UserCredential userCredential = await authClient
           .signInWithEmailAndPassword(
@@ -43,10 +77,19 @@ class FirebaseAuthProvider with ChangeNotifier{
       // Login successful
       final User? user = userCredential.user;
       if (user != null) {
+        this.user=user; //set current user
+
+/*        var val = jsonEncode(Login(email, pw));
+        logger.d("val: $val");
+        storage.write(
+          key: 'login',
+          value: val,
+        );*/
+
         logger.i('Login successful for user: ${user.email}');
-        logger.d('persist on');
-        authPersistence();
+
         notifyListeners();
+
         return AuthStatus.loginSuccess;
       } else {
         return AuthStatus.loginFail;
@@ -69,14 +112,20 @@ class FirebaseAuthProvider with ChangeNotifier{
   /// 로그아웃
   Future<void> signOut() async {
     await authClient.signOut();
+    user=null;
     logger.d("로그아웃");
     notifyListeners();
   }
 
-  /// 회원가입, 로그인시 사용자 영속
-  void authPersistence() async {
+  /// 회원가입, 로그인시 사용자 영속 -> 수정해야함
+/*  void authPersistence() async {
     await authClient.setPersistence(Persistence.LOCAL);
-  }
+  }*/
+/*  dynamic getPersistence() async {
+    dynamic userInfo = await storage.read(key:'login'); // userInfo가 없을때 null 반환
+    return userInfo;
+  }*/
+
 
   /// 유저 삭제
   Future<void> deleteUser(String email) async {
@@ -111,10 +160,11 @@ class FirebaseAuthProvider with ChangeNotifier{
         'emailVerified': emailVerified,
         'uid': uid,
       };
+    }else {
+      logger.d("사용자가 없습니다");
+      return null;
     }
-    return null;
   }
-
 
   /// 공급자로부터 유저 정보 조회
   User? getUserFromSocial() {
@@ -149,9 +199,41 @@ class FirebaseAuthProvider with ChangeNotifier{
   }
 
   /// 비밀번호 초기화 메일보내기
-  Future<void> sendPasswordResetEmail(String email) async {
+  Future<AuthStatus> sendPasswordResetEmail(String email) async {
     await FirebaseAuth.instance.setLanguageCode("kr");
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      return AuthStatus.resetSuccess;
+    }catch (e) {
+      logger.e('Failed to update password: $e');
+      return AuthStatus.resetFail; // Password update failed
+    }
   }
+
+  /// 비밀번호 변경  -> 이미 로그인 되어있는 사용자만 이용 가능
+  Future<bool> setPassword(String newPassword) async {
+    try {
+      await user?.updatePassword(newPassword);
+      return true; // Password update successful
+    } catch (e) {
+      logger.e('Failed to update password: $e');
+      return false; // Password update failed
+    }
+  }
+
+
+
+
+/*  Future<void> findUserEmail(String email) async {
+    authClient.fetchProvidersForEmail(email)
+        .then(providers => {
+    if (providers.length === 0) {
+    // this email hasn't signed up yet
+    } else {
+    // has signed up
+    }
+    });
+  }*/
+
 
 }

@@ -1,3 +1,5 @@
+import 'colors.dart';
+
 const BoardSheetList = [
   '조회순',
   '최신순',
@@ -16,4 +18,16 @@ const BoardFilterList = [
 const BoardList = [
   '자유게시판',
   '질문하기',
+];
+
+const ScheduleTypeList = [
+  '청약',
+  '목표',
+  '일정'
+];
+
+const ScheduleColorList = [
+  CALENDAR_GREEN,
+  CALENDAR_YELLOW,
+  CALENDAR_PURPLE
 ];

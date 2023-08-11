@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/colors.dart';
+import '../constants/size.dart';
 
 class TabScreen extends StatefulWidget {
   @override
@@ -33,7 +34,8 @@ class _TabScreenState extends State<TabScreen> {
               BottomNavigationBarItem(icon: Icon(Icons.layers), label:'공간기록'),
               BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '캘린더'),
               BottomNavigationBarItem(icon: Icon(Icons.person), label: '내 활동'),
-            ]
+            ],
+          height: BOTTOM_TAB,
         ),
         tabBuilder: (context, index) {
           switch (index) {
