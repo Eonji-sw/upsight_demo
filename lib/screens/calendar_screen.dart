@@ -488,6 +488,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
   Future<void> createSchedule(BuildContext context) async {
+    print("왜안돼하");
     // 입력받은 데이터로 새로운 스케줄 데이터 생성하여 DB에 추가
     Schedule newSchedule = Schedule(
       id: user,
@@ -551,4 +552,6 @@ class Meeting {
   DateTime to;
   Color background;
   bool isAllDay;
+
 }
+
