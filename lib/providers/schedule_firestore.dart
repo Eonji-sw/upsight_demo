@@ -25,8 +25,35 @@ class ScheduleFirebase {
   }
 
   Future addSchedule(Schedule schedule) async {
-    scheduleReference.add(schedule.toMap());
+    Map<String, dynamic> scheduleMap = schedule.toMap();
+
+    scheduleMap['start_date'] = {
+      'year': schedule.start_date.year,
+      'month': schedule.start_date.month,
+      'day': schedule.start_date.day,
+    };
+
+    scheduleMap['end_date'] = {
+      'year': schedule.end_date.year,
+      'month': schedule.end_date.month,
+      'day': schedule.end_date.day,
+    };
+
+    scheduleMap['start_time'] = {
+      'hour': schedule.start_time.hour,
+      'minute': schedule.start_time.minute,
+      'am_pm': schedule.start_time.hour < 12 ? 'AM' : 'PM',
+    };
+
+    scheduleMap['end_time'] = {
+      'hour': schedule.end_time.hour,
+      'minute': schedule.end_time.minute,
+      'am_pm': schedule.end_time.hour < 12 ? 'AM' : 'PM',
+    };
+
+    await scheduleReference.add(scheduleMap);
   }
+
 
   Future updateSchedule(Schedule schedule) async {
     schedule.reference?.update(schedule.toMap());

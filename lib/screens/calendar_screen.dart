@@ -583,17 +583,36 @@ class _CalendarScreenState extends State<CalendarScreen> {
   // DB에 입력받은 스케줄 데이터 생성하여 추가
   Future<void> createSchedule(BuildContext context) async {
 
-    Schedule newSchedule = Schedule(
-      id: user,
-      title: title,
-      type: selectedRadio!, // 선택된 라디오 버튼 값 사용
-      start_date: selectedStartDate,
-      start_time: selectedStartTime,
-      end_date: selectedEndDate,
-      end_time: selectedEndTime,
-      isSwitched: switchValue,
-      description: description,
-    );
+    Schedule newSchedule;
+
+    if (switchValue) {
+      // 종일 전환 버튼이 눌렸을 때
+      newSchedule = Schedule(
+        id: user,
+        title: title,
+        type: selectedRadio!,
+        start_date: selectedStartDate,
+        start_time:  DateTime(selectedStartDate.year, selectedStartDate.month, selectedStartDate.day, 0, 0), // 0으로 초기화하기
+        end_date: selectedEndDate,
+        end_time: DateTime(selectedStartDate.year, selectedStartDate.month, selectedStartDate.day, 0, 0),  // 0으로 초기화하기
+        isSwitched: switchValue,
+        description: description,
+      );
+    } else {
+      // 종일 전환 버튼이 해제되었을 때
+      newSchedule = Schedule(
+        id: user,
+        title: title,
+        type: selectedRadio!,
+        start_date: selectedStartDate,
+        start_time: selectedStartTime,
+        end_date: selectedEndDate,
+        end_time: selectedEndTime,
+        isSwitched: switchValue,
+        description: description,
+      );
+    }
+
 
     await scheduleFirebase.addSchedule(newSchedule); // 스케줄 추가
 
