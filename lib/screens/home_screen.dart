@@ -3,10 +3,12 @@
 bottomTabBar : o
  */
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/colors.dart';
 import '../constants/size.dart';
+import '../providers/question_firestore.dart';
 import '../widgets/gradient_base.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +17,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // firebase 객체 생성
+  QuestionFirebase questionFirebase = QuestionFirebase();
+
+  late QuerySnapshot openSnapshot;
+  late Future<QuerySnapshot> hotOpenFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    setState(() {
+      hotOpenFuture = fetchHotOpen();
+    });
+  }
+
+  // 자유게시판 인기 글 반환하는 함수
+  Future<QuerySnapshot> fetchHotOpen() async {
+    // firebase 객체 초기화
+    questionFirebase.initDb();
+    openSnapshot = await questionFirebase.questionReference.orderBy('views_count', descending: true).limit(1).get();
+    return openSnapshot;
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarSize = MediaQuery.of(context).padding.top;
@@ -70,10 +95,63 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Align(
                 alignment: Alignment.center,
-                child: Container(
-                  width: 322,
-                  height: 257.19,
-                  decoration: buildShapeDecoration(),
+                child: FutureBuilder<QuerySnapshot>(
+                  future: hotOpenFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator(); // 로딩 중인 경우 로딩 표시
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Text('No data available'); // 데이터가 없는 경우 표시
+                    } else {
+                      var data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+                      return Container(
+                        width: 322,
+                        height: 257.19,
+                        decoration: buildShapeDecoration(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                data['title'],
+                                style: TextStyle(
+                                  color: BLACK,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 2,),
+                              Text(
+                                data['content'],
+                                style: TextStyle(
+                                  color: BLACK,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              Spacer(),
+                              Row(
+                                children: [
+                                  Icon(Icons.account_circle_outlined, color: ICON_GREY,),
+                                  SizedBox(width: 5,),
+                                  Text(
+                                    data['author'],
+                                    style: TextStyle(
+                                      color: TEXT_GREY,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ),
               // 질문하기 인기 글
