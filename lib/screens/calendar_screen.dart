@@ -3,6 +3,7 @@
 bottomTabBar : o
  */
 
+import 'package:board_project/widgets/listtile_sheet.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../constants/colors.dart';
 import 'package:flutter/material.dart';
@@ -145,10 +146,127 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
             // 캘린더 이전/다음 달 버튼 표시
             showNavigationArrow: true,
+
+            // 날짜를 눌렀을 때 다이얼로그 표시
+            onTap: (CalendarTapDetails details) {
+              if (details.targetElement == CalendarElement.calendarCell) {
+                DateTime tappedDate = details.date!;
+
+                List<Meeting> appointmentsForDate = meetings.where((meeting) {
+                  return (meeting.from.isBefore(tappedDate) && meeting.to.isAfter(tappedDate) ||
+                      (meeting.from.year == tappedDate.year && meeting.from.month == tappedDate.month && meeting.from.day == tappedDate.day));
+                }).toList();
+
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Dialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ROUND_BORDER)),
+                        backgroundColor: Colors.transparent,
+                        child: Container(
+                            width: 320,
+                            height: 374,
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: WHITE,
+                              borderRadius: BorderRadius.circular(ROUND_BORDER),
+                            ),
+                            child: Column(
+                              children: [
+                                Text('${DateFormat('yyyy.  M. dd. E', 'ko_KR').format(tappedDate)}',
+                                  style: TextStyle(
+                                    color: tappedDate.weekday == DateTime.saturday || tappedDate.weekday == DateTime.sunday ? ALERT_RED : BLACK,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                appointmentsForDate.isNotEmpty
+                                  ? Column(
+                                  children: appointmentsForDate.map((appointment) {
+                                    return Column(
+                                      children: [
+                                        ListTile(
+                                          visualDensity: VisualDensity.compact,
+                                          contentPadding: EdgeInsets.zero,
+                                          leading: Container(
+                                            width: 24,
+                                            height: 16,
+                                            decoration: ShapeDecoration(
+                                              color: appointment.background,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                                            ),
+                                          ),
+                                          title: Text(appointment.eventName,
+                                            style: TextStyle(
+                                              color: BLACK,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                          trailing: IconButton(
+                                            icon: Icon(Icons.more_vert),
+                                            onPressed: () {
+                                              showModalBottomSheet(
+                                                  backgroundColor: WHITE,
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        ListtileSheet(name: '자세히 보기', color: BLACK, onTab: () {}),
+                                                        ListtileSheet(name: '삭제', color: ALERT_RED, onTab: () {}),
+                                                      ],
+                                                    );
+                                                  });
+                                            },
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(left: 37),
+                                          child: Text('${appointment.from} ~ ${appointment.to}',
+                                            style: TextStyle(
+                                              color: D_GREY,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                                )
+                                    : Text('일정이 없습니다.'),
+                                Spacer(),
+                                InkWell(
+                                  onTap: () {
+                                  },
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.edit_calendar_outlined, color: KEY_BLUE,),
+                                      SizedBox(width: 5,),
+                                      Text('스케줄 추가',
+                                        style: TextStyle(
+                                          color: KEY_BLUE,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ))
+                      );
+                    }
+                );
+              }
+            },
           ),
         ),
         //일정 추가 버튼 생성
-        floatingActionButton: buildFloating(context));
+        floatingActionButton: buildFloating(context)
+    );
   }
 
   // 일정 추가 버튼 UI
