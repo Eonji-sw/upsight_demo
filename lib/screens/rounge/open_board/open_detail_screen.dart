@@ -868,4 +868,5 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
       ),
     );
   }
+  
 }

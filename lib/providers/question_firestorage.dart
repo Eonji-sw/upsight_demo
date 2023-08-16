@@ -37,11 +37,23 @@ class FileStorage extends GetxController{
     }
   }
 
-  Future<void>getFile(String downloadPath) async{
-    try{
-      storageRef = storage.ref(downloadPath);
-
-    }catch(e){}
+  Future<String?> getFile(String userName, String downloadPath) async {
+    try {
+      // Get a reference to the file
+      storageRef = storage.ref("question");
+      Reference? imagesRef = storageRef.child(userName);
+      // Check if the file exists
+      if (imagesRef != null) {
+        Reference imageRef = imagesRef.child(downloadPath);
+        var url = await imageRef.getDownloadURL();
+        logger.d("url: $url");
+        return url;
+      } else {
+        logger.e('File not found.');
+      }
+    } catch (e) {
+      logger.e('Error: $e');
+    }
   }
 
 

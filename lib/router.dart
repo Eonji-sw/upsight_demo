@@ -1,3 +1,4 @@
+import 'package:board_project/screens/api_test.dart';
 import 'package:board_project/screens/auth_screen.dart';
 import 'package:board_project/screens/dl_test_screen.dart';
 import 'package:board_project/screens/login_screen.dart';
@@ -16,7 +17,7 @@ const String loginRoute='/login';
 const String registerRoute= '/register';
 const String resetPasswordRoute= '/reset_password';
 const String testRoute= '/test';
-
+const String testAPIRoute= '/testAPI';
 // Route를 관리하는 함수
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -40,6 +41,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case testRoute:
       return MaterialPageRoute(builder: (context) => TestScreen());
+
+    case testAPIRoute:
+      return MaterialPageRoute(builder: (context) => APITestScreen());
 
 
     default:
