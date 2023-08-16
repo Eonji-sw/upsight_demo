@@ -49,8 +49,7 @@ class FileStorage extends GetxController{
         logger.d("url: $url");
         return url;
       } else {
-        logger.e('File no'
-            't found.');
+        logger.e('File not found.');
       }
     } catch (e) {
       logger.e('Error: $e');
