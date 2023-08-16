@@ -31,6 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.of(context).pushReplacementNamed('/tab');
       } else {
         Navigator.of(context).pushReplacementNamed('/login');
+        //Navigator.of(context).pushReplacementNamed('/test');
       }
     });
   }

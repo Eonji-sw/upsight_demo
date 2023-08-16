@@ -48,6 +48,7 @@ dependencies:
   firebase_auth: ^4.7.2
   logger: ^2.0.1
   flutter_secure_storage: ^8.0.0
+  flutter_vision: ^1.1.1
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +81,10 @@ flutter:
     - assets/images/logo.png
     - assets/images/naver.png
     - assets/images/profile.png
+    - assets/label/labels.txt
+    - assets/yolov8n.tflite
+    - assets/best_float16.tflite
+    - assets/label/label_crack.txt
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

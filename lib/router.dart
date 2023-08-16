@@ -1,4 +1,5 @@
 import 'package:board_project/screens/auth_screen.dart';
+import 'package:board_project/screens/dl_test_screen.dart';
 import 'package:board_project/screens/login_screen.dart';
 import 'package:board_project/screens/register_screen.dart';
 import 'package:board_project/screens/reset_password_screen.dart';
@@ -14,6 +15,7 @@ const String boardRoute = '/tab/test';
 const String loginRoute='/login';
 const String registerRoute= '/register';
 const String resetPasswordRoute= '/reset_password';
+const String testRoute= '/test';
 
 // Route를 관리하는 함수
 Route<dynamic> generateRoute(RouteSettings settings) {
@@ -35,6 +37,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case boardRoute:
     return MaterialPageRoute(builder: (context) => OpenBoardScreen());
+
+    case testRoute:
+      return MaterialPageRoute(builder: (context) => TestScreen());
+
 
     default:
     // 잘못된 Route가 요청된 경우 로그인 페이지로 이동

@@ -25,6 +25,8 @@ import '../../../widgets/gradient_base.dart';
 import '../../../widgets/null_search.dart';
 import '../../../widgets/sheet_base.dart';
 import '../qna_board/qna_board_screen.dart';
+import 'package:board_project/screens/login_secure.dart';
+
 
 
 class OpenBoardScreen extends StatefulWidget {
@@ -33,6 +35,7 @@ class OpenBoardScreen extends StatefulWidget {
 }
 
 class _OpenBoardScreenState extends State<OpenBoardScreen> {
+
   // firebase 객체 생성
   QuestionFirebase questionFirebase = QuestionFirebase();
   UserFirebase userFirebase = UserFirebase();

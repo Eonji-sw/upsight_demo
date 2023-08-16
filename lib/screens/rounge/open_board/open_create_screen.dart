@@ -7,6 +7,7 @@ bottomTabBar : x -> 어차피 floatingActionButton을 통해 들어가는 페이
 import 'package:board_project/screens/rounge/open_board/open_board_screen.dart';
 import 'package:board_project/screens/rounge/open_board/open_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
@@ -16,7 +17,8 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:board_project/providers/user_firestore.dart';
-
+import 'package:board_project/providers/question_firestorage.dart';
+import 'package:provider/provider.dart';
 import '../../../constants/colors.dart';
 import '../../../constants/list.dart';
 import '../../../constants/size.dart';
@@ -26,7 +28,9 @@ import '../../../widgets/button_yes.dart';
 import '../../../widgets/dialog_base.dart';
 import '../../../widgets/divider_base.dart';
 import '../../../widgets/textform_base.dart';
-
+import 'package:board_project/screens/login_secure.dart';
+import 'package:get/get.dart';
+import 'package:board_project/providers/user_firestore.dart';
 
 class OpenCreateScreen extends StatefulWidget {
   _OpenCreateScreenState createState() => _OpenCreateScreenState();
@@ -38,6 +42,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   UserFirebase userFirebase = UserFirebase();
 
   // 새로 생성하는 question model의 각 필드 초기화
+
   String title = '';
   String content = '';
   String author = '';
@@ -58,14 +63,14 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   late QuerySnapshot? questionSnapshot;
 
   // 현재 로그인한 사용자 name
-  late String user;
+  late String? userName;
 
   // 게시물의 사진 초기화
   final List<File> _images = [];
   final picker = ImagePicker();
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
     setState(() {
       // firebase 객체 초기화
@@ -75,11 +80,31 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
       category = '글 주제 선택';
     });
     // user_id 값을 가져와서 user 변수에 할당
+/*    fetchUser()
+        .then((userName) {this.userName =userName;});*/
     fetchUser();
   }
 
   // 사용자 데이터를 가져와서 user 변수에 할당하는 함수
-  Future<void> fetchUser() async {
+    Future<void> fetchUser() async {
+          UserFirebase().getUserById(FirebaseAuthProvider().authClient.currentUser!.uid)
+        .then((result) {
+            var userData = result as Map<String, dynamic>;
+            if (userData != null) {
+
+              setState(() {
+                userName = userData["name"];
+              });
+              logger.d(userName);
+              //return user;
+            }else{
+              logger.e("fetchUser error: 유저 정보를 가져오지 못하였습니다.");
+              //return null;
+            }
+          });
+  }
+
+/*  Future<void> fetchUser() async {
     final userSnapshot = await userFirebase.userReference.get();
 
     if (userSnapshot.docs.isNotEmpty) {
@@ -88,7 +113,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
         user = (document.data() as Map<String, dynamic>)['user_id'];
       });
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -336,7 +361,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
       Question newQuestion = Question(
         title: title,
         content: content,
-        author: user,
+        author: userName!,
         create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
         modify_date: modify_date,
         category: category,
@@ -353,10 +378,22 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
         ),
       );
 
-      // 이미지 storage에 업로드
-      // for (int i = 0; i < _images.length; i++) {
-      //   FirebaseStorage.instance.ref("question/test_${i}").putFile(_images[i]);
-      // }
+      FileStorage fileStorage = Get.put(FileStorage());
+      //이미지 storage에 업로드
+
+
+      await fileStorage
+            .uploadFile(_images[0], "question/$userName/test_${DateTime.timestamp()}")
+            .then((value){
+              logger.d("value: $value");
+            });
+
+
+
+/*      for (int i = 0; i < _images.length; i++) {
+        FirebaseStorage.instance.ref("question/test_${i}").putFile(_images[i]);
+      }*/
+
     }
   }
 
@@ -367,6 +404,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
       images.forEach((e) {
         _images.add(File(e.path));
       });
+      logger.d("getImage: $_images");
       setState(() {});
     }
   }
