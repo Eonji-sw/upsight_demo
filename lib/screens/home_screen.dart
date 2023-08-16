@@ -54,10 +54,21 @@ class _HomeScreenState extends State<HomeScreen> {
               // 로고
               Align(
                 alignment: Alignment.center,
-                child: Container(
-                  width: 117,
-                  height: 53,
-                  child: Image.asset('assets/images/logo.png'),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 117,
+                      height: 53,
+                      child: Image.asset('assets/images/logo.png'),
+                    ),
+                    Text('UPSIGHT',
+                      style: TextStyle(
+                        color: KEY_BLUE,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               // 정보 배너
@@ -74,12 +85,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  width: 322,
-                  height: 133.55,
-                  decoration: buildShapeDecoration(),
+              Padding(
+                padding: EdgeInsets.only(left: 20, right: 20),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: double.infinity,
+                    height: 133.55,
+                    decoration: buildShapeDecoration(),
+                  ),
                 ),
               ),
               // 자유게시판 인기 글
@@ -93,65 +107,68 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              Align(
-                alignment: Alignment.center,
-                child: FutureBuilder<QuerySnapshot>(
-                  future: hotOpenFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator(); // 로딩 중인 경우 로딩 표시
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Text('No data available'); // 데이터가 없는 경우 표시
-                    } else {
-                      var data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
-                      return Container(
-                        width: 322,
-                        height: 257.19,
-                        decoration: buildShapeDecoration(),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Text(
-                                data['title'],
-                                style: TextStyle(
-                                  color: BLACK,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: 2,),
-                              Text(
-                                data['content'],
-                                style: TextStyle(
-                                  color: BLACK,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              Spacer(),
-                              Row(
-                                children: [
-                                  Icon(Icons.account_circle_outlined, color: ICON_GREY,),
-                                  SizedBox(width: 5,),
-                                  Text(
-                                    data['author'],
-                                    style: TextStyle(
-                                      color: TEXT_GREY,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                    ),
+              Padding(
+                padding: EdgeInsets.only(left: 20, right: 20),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: FutureBuilder<QuerySnapshot>(
+                    future: hotOpenFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator(); // 로딩 중인 경우 로딩 표시
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return Text('No data available'); // 데이터가 없는 경우 표시
+                      } else {
+                        var data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+                        return Container(
+                          width: double.infinity,
+                          height: 257.19,
+                          decoration: buildShapeDecoration(),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                Text(
+                                  data['title'],
+                                  style: TextStyle(
+                                    color: BLACK,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                ],
-                              ),
-                            ],
+                                ),
+                                SizedBox(height: 2,),
+                                Text(
+                                  data['content'],
+                                  style: TextStyle(
+                                    color: BLACK,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                Spacer(),
+                                Row(
+                                  children: [
+                                    Icon(Icons.account_circle_outlined, color: ICON_GREY,),
+                                    SizedBox(width: 5,),
+                                    Text(
+                                      data['author'],
+                                      style: TextStyle(
+                                        color: TEXT_GREY,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    }
-                  },
+                        );
+                      }
+                    },
+                  ),
                 ),
               ),
               // 질문하기 인기 글
@@ -165,12 +182,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  width: 322,
-                  height: 257.19,
-                  decoration: buildShapeDecoration(),
+              Padding(
+                padding: EdgeInsets.only(left: 20, right: 20),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: double.infinity,
+                    height: 257.19,
+                    decoration: buildShapeDecoration(),
+                  ),
                 ),
               ),
             ],

@@ -74,7 +74,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         schedule.title,
         schedule.start_date,
         schedule.end_date,
-        schedule.type == 0 ? const Color(0xFFAFD67D) : schedule.type == 2 ? const Color(0xFFD7A6FE) : const Color(0xFFFFB444),
+        schedule.type == 0 ? ScheduleColorList[0] : schedule.type == 1 ? ScheduleColorList[1] : ScheduleColorList[2],
         schedule.isSwitched,
       );
     }).toList();
@@ -112,7 +112,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               showTrailingAndLeadingDates: false,
             ),
             // 캘린더 오늘 날짜 border 색
-            todayHighlightColor: D_GREY,
+            todayHighlightColor: BLACK,
             // 캘린더 오늘 날짜 스타일
             todayTextStyle: TextStyle(
               color: WHITE,
@@ -121,6 +121,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
             // 캘린더 구분선 색
             cellBorderColor: L_GREY,
+
+            // 캘린더 선택 날짜 표시
+            selectionDecoration: BoxDecoration(
+              border: Border.all(color: ICON_GREY, width: 1),
+            ),
 
             // 캘린더 헤더 날짜 표시
             headerDateFormat: 'yyyy년 MM월',
