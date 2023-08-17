@@ -42,8 +42,8 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case testRoute:
       return MaterialPageRoute(builder: (context) => TestScreen());
 
-    case testAPIRoute:
-      return MaterialPageRoute(builder: (context) => APITestScreen());
+    //case testAPIRoute:
+      //return MaterialPageRoute(builder: (context) => APITestScreen());
 
 
     default:

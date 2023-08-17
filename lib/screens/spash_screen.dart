@@ -28,8 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
   void moveScreen() async {
     await checkLogin().then((isLogin) {
       if (isLogin) {
-        //Navigator.of(context).pushReplacementNamed('/tab');
-        Navigator.of(context).pushReplacementNamed('/testAPI');
+        Navigator.of(context).pushReplacementNamed('/tab');
+        //Navigator.of(context).pushReplacementNamed('/testAPI');
       } else {
         Navigator.of(context).pushReplacementNamed('/login');
         //Navigator.of(context).pushReplacementNamed('/test');

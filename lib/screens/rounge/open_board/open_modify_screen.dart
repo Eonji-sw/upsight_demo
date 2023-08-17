@@ -328,6 +328,7 @@ class _OpenModifyScreenState extends State<OpenModifyScreen> {
         views_count: questionData.views_count,
         isLikeClicked: questionData.isLikeClicked,
         answerCount: questionData.answerCount,
+        img_url: questionData.img_url,
       );
       await questionFirebase.questionReference.doc(questionId).update(modifyQuestion.toMap());
       Navigator.of(context).push(

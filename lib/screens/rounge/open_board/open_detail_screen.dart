@@ -4,6 +4,7 @@
 bottomTabBar : x
  */
 
+
 import 'package:board_project/providers/answer_firestore.dart';
 import 'package:board_project/providers/user_firestore.dart';
 import 'package:board_project/widgets/dialog_base.dart';
@@ -20,12 +21,14 @@ import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
 import '../../../models/comment.dart';
 import '../../../providers/comment_firestore.dart';
+import '../../../providers/question_firestorage.dart';
 import '../../../widgets/appbar_action.dart';
 import '../../../widgets/null_answer.dart';
 import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
 import '../../../widgets/divider_sheet.dart';
 import '../../../widgets/listtile_sheet.dart';
+import '../../login_secure.dart';
 import 'open_board_screen.dart';
 
 
@@ -45,6 +48,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   AnswerFirebase answerFirebase = AnswerFirebase();
   UserFirebase userFirebase = UserFirebase();
   CommentFirebase commentFirebase = CommentFirebase();
+  FileStorage fileStorage = FileStorage();
 
   // 전달받은 question, questionId, questionDoc 데이터 저장할 변수
   late Question questionData;
@@ -60,7 +64,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   QuerySnapshot? commentSnapshot;
 
   // 현재 로그인한 사용자 name
-  late String user;
+  late String? user;
 
   // 좋아요 버튼 눌렀는지 유무 저장하는 변수
   bool likeData = false;
@@ -76,47 +80,78 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      // 현재 로그인된 사용자 정보를 가져와서 user 변수에 할당
+      fetchUser();
+      // 해당 answer 데이터의 snapshot 저장
+      fetchAnswer();
+    });
     // 전달받은 question, questionId, questionDoc 데이터 저장
     questionData = widget.data;
     questionId = widget.dataId;
     questionDoc = widget.dataDoc;
 
-    setState(() {
-      // firebase 객체 초기화
-      questionFirebase.initDb();
-      answerFirebase.initDb();
-      userFirebase.initDb();
-      commentFirebase.initDb();
-    });
-    // 해당 answer 데이터의 snapshot 저장
-    fetchAnswer();
-    // user_id 값을 가져와서 user 변수에 할당
-    fetchUser();
+    // firebase 객체 초기화
+    questionFirebase.initDb();
+    answerFirebase.initDb();
+    userFirebase.initDb();
+    commentFirebase.initDb();
   }
+
+  Future<List?> getImageURL() async {
+    try {
+      List? urls=fileStorage.getFile(questionData);
+        if (urls != null) {
+          return urls;
+        } else {
+          logger.e("not found image");
+          return null;
+        }
+    } catch (e) {
+      logger.e("while getting image, error occured: $e");
+      return null;
+    }
+  }
+
 
   // 해당 question의 answer 데이터의 snapshot 저장하는 함수
   Future<void> fetchAnswer() async {
     answerSnapshot = await answerFirebase.answerReference
         .where('question', isEqualTo: questionId)
         .get();
-
-    setState(() {
       // 해당 게시글(question)의 댓글 목록 길이 저장
-      answersNullLen = answerSnapshot!.docs.length;
-    });
+    answersNullLen = answerSnapshot!.docs.length;
   }
 
   // 사용자 데이터를 가져와서 user 변수에 할당하는 함수
-  Future<void> fetchUser() async {
+/*  Future<void> fetchUser() async {
     final userSnapshot = await userFirebase.userReference.get();
-
     if (userSnapshot.docs.isNotEmpty) {
       final document = userSnapshot.docs.first;
       setState(() {
         user = (document.data() as Map<String, dynamic>)['user_id'];
+        logger.d("open detail - fetch User: $user"); /// null 반환되는 버그
       });
     }
+  }*/
+
+  Future<void> fetchUser() async {
+    final currentUser = FirebaseAuthProvider().authClient.currentUser;
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+      UserFirebase().getUserById(uid)
+          .then((result) {
+        var userData = result as Map<String, dynamic>;
+           user = userData["name"];
+          logger.d("open detail - fetch User: $user");
+      });
+    }
+    else {
+      logger.e("fetchUser error: 유저 정보를 가져오지 못하였습니다.");
+    }
   }
+
+
 
   @override
   void dispose() {
@@ -124,6 +159,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     _answerTextEditController.dispose();
     super.dispose();
   }
+
 
   // 위젯을 만들고 화면에 보여주는 함수
   @override
@@ -244,6 +280,28 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
                         child: Text(questionData.content!),
                       ),
                     ),
+
+                    /*image container 들어갈 부분*/
+                    FutureBuilder<List?>(
+                        future: getImageURL(),
+                        builder: (context, AsyncSnapshot snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CircularProgressIndicator();
+                            } else if (snapshot.hasData) {
+                              final imageUrls = snapshot.data!;
+                              logger.d("image container value: $imageUrls");
+                              return ImageViewer(imageUrls: imageUrls);
+                            } else if(snapshot.hasError){
+                              logger.e("error occured while getting url snapshot: ${snapshot.hasError}");
+                              return const SizedBox();
+                            } else {
+                              logger.d('Image not found');
+                              return const SizedBox();
+                            }
+                        }
+                    ),
+
                     // 좋아요, 댓글수, 조회수
                     Row(children: [
                       Container(
@@ -715,7 +773,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     Comment newComment = Comment(
       answer: answerId,
       content: commentText,
-      author: user,
+      author: user!,
       create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
     );
     await commentFirebase.addComment(newComment);
@@ -817,7 +875,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
     Answer newAnswer = Answer(
       question: questionId,
       content: answerText,
-      author: user,
+      author: user!,
       create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
     );
     answerFirebase.addAnswer(newAnswer);
@@ -868,5 +926,42 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
       ),
     );
   }
-  
+
 }
+
+class ImageViewer extends StatelessWidget {
+  final List<dynamic>? imageUrls;
+
+  const ImageViewer({Key? key, required this.imageUrls}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrls==null) {
+      // Return a placeholder widget or handle the empty case as needed
+      return const SizedBox();
+    }
+
+    return SizedBox(
+      height: 150,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: imageUrls!.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.network(imageUrls![index]),
+          );
+        },
+      ),
+    );
+  }
+}
+/*  @override
+  Widget build(BuildContext context) {
+    return
+      Container(
+          alignment: Alignment.center,
+            height: 150,
+            width: 150,
+          child: Image.network(imageUrl[0]),
+        );*/

@@ -11,7 +11,7 @@ class Question {
   late bool isLikeClicked;
   late DocumentReference? reference;
   late int answerCount;
-
+  late List<dynamic> img_url;
 
   Question({
     required this.title,
@@ -23,6 +23,7 @@ class Question {
     required this.views_count,
     required this.isLikeClicked,
     required this.answerCount,
+    required this.img_url,
     this.reference,
   });
 
@@ -37,6 +38,7 @@ class Question {
       'views_count': views_count,
       'isLikeClicked': isLikeClicked,
       'answerCount': answerCount,
+      'img_url': img_url,
     };
   }
 
@@ -50,6 +52,7 @@ class Question {
     views_count = map?['views_count'];
     isLikeClicked = map?['isLikeClicked'];
     answerCount = map?['answerCount'];
+    img_url= map?['img_url'];
   }
 
 
@@ -64,6 +67,7 @@ class Question {
     views_count = map['views_count'];
     isLikeClicked = map['isLikeClicked'];
     answerCount = map['answerCount'];
+    img_url= map['img_url'];
 
     reference = document.reference;
   }

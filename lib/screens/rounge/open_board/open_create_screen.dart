@@ -52,6 +52,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   int views_count = COMMON_INIT_COUNT;
   bool isLikeClicked = false;
   int answerCount = COMMON_INIT_COUNT;
+  List <String?> img_url =[];
 
   String boardCategory = '';
   int lastBoardIndex = COMMON_INIT_COUNT;
@@ -72,13 +73,13 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   @override
   void initState(){
     super.initState();
-    setState(() {
-      // firebase 객체 초기화
-      questionFirebase.initDb();
-      userFirebase.initDb();
-      boardCategory = '자유게시판';
-      category = '글 주제 선택';
-    });
+
+    // firebase 객체 초기화
+    questionFirebase.initDb();
+    userFirebase.initDb();
+    boardCategory = '자유게시판';
+    category = '글 주제 선택';
+
     // user_id 값을 가져와서 user 변수에 할당
 /*    fetchUser()
         .then((userName) {this.userName =userName;});*/
@@ -91,32 +92,18 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
         .then((result) {
             var userData = result as Map<String, dynamic>;
             if (userData != null) {
-
-              setState(() {
                 userName = userData["name"];
-              });
               logger.d(userName);
               //return user;
             }else{
               logger.e("fetchUser error: 유저 정보를 가져오지 못하였습니다.");
-              //return null;
             }
           });
   }
 
-/*  Future<void> fetchUser() async {
-    final userSnapshot = await userFirebase.userReference.get();
-
-    if (userSnapshot.docs.isNotEmpty) {
-      final document = userSnapshot.docs.first;
-      setState(() {
-        user = (document.data() as Map<String, dynamic>)['user_id'];
-      });
-    }
-  }*/
-
   @override
   Widget build(BuildContext context) {
+    logger.d("open create state build call");
     return Scaffold(
       // appBar
       //   appBar: const PreferredSize(
@@ -355,19 +342,35 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
 
   // 질문 생성 함수
   Future<void> createQuestion(BuildContext context) async {
+    FileStorage fileStorage = Get.put(FileStorage()); ///이미지를 안올릴 때 에러 발생하는 이슈 해결 및 이미지 가져올 때도 마찬가지
+    //이미지 storage 및 firestore에 업로드
+    await Future.forEach(_images.asMap().entries, (entry) async{
+      final index = entry.key;
+      final image = entry.value;
+      final url=await fileStorage.uploadFile(image, "question/$userName/${title}_$create_date/test_$index");
+      img_url.add(url);
+      logger.d("returned value from uploadFile: $url");
+    });
+
+/*    final url=await fileStorage.uploadFile(_images[0], "question/$userName/${title}_$create_date/test");
+    img_url.add(url);
+    logger.d("returned value from uploadFile: $url");*/
+
     // 필수 필드가 작성되었는지 확인
     if (title.isNotEmpty && content.isNotEmpty && category != '글 주제 선택') {
       // 입력받은 데이터로 새로운 question 데이터 생성하여 DB에 생성
+      create_date= DateFormat('yy.MM.dd.HH.mm').format(DateTime.now());
       Question newQuestion = Question(
         title: title,
         content: content,
         author: userName!,
-        create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
+        create_date: create_date,
         modify_date: modify_date,
         category: category,
         views_count: views_count,
         isLikeClicked: isLikeClicked,
         answerCount: answerCount,
+        img_url: img_url,
       );
       questionFirebase.addQuestion(newQuestion);
       questionSnapshot = await questionFirebase.fetchQuestion(newQuestion);
@@ -377,23 +380,6 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
           builder: (BuildContext context) => OpenDetailScreen(data: newQuestion, dataId: questionSnapshot!.docs.first.id, dataDoc: questionSnapshot!.docs.first),
         ),
       );
-
-      FileStorage fileStorage = Get.put(FileStorage());
-      //이미지 storage에 업로드
-
-
-      await fileStorage
-            .uploadFile(_images[0], "question/$userName/test_${DateTime.timestamp()}")
-            .then((value){
-              logger.d("value: $value");
-            });
-
-
-
-/*      for (int i = 0; i < _images.length; i++) {
-        FirebaseStorage.instance.ref("question/test_${i}").putFile(_images[i]);
-      }*/
-
     }
   }
 
@@ -404,7 +390,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
       images.forEach((e) {
         _images.add(File(e.path));
       });
-      logger.d("getImage: $_images");
+      //logger.d("getImage: $_images");
       setState(() {});
     }
   }
