@@ -164,6 +164,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
   // 위젯을 만들고 화면에 보여주는 함수
   @override
   Widget build(BuildContext context) {
+    logger.d("open detail screen state build call");
     return Scaffold(
       // appBar
       // appBar: PreferredSize(

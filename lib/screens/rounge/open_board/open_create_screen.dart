@@ -375,11 +375,12 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
       questionFirebase.addQuestion(newQuestion);
       questionSnapshot = await questionFirebase.fetchQuestion(newQuestion);
 
-      Navigator.of(context).push(
+/*      Navigator.of(context).push(
         MaterialPageRoute(
           builder: (BuildContext context) => OpenDetailScreen(data: newQuestion, dataId: questionSnapshot!.docs.first.id, dataDoc: questionSnapshot!.docs.first),
         ),
-      );
+      );*/
+        Navigator.of(context).pop();
     }
   }
 
@@ -391,7 +392,6 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
         _images.add(File(e.path));
       });
       //logger.d("getImage: $_images");
-      setState(() {});
     }
   }
 
