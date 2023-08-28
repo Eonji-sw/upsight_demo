@@ -2,11 +2,19 @@
 공간(space) 생성하는 page
  */
 
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:board_project/models/space.dart';
 import 'package:board_project/providers/space_firestore.dart';
 import 'package:board_project/screens/space/building_board_screen.dart';
+import 'package:provider/provider.dart';
+import 'dart:io';
+import '../../providers/question_firestorage.dart';
+import '../../providers/user_firestore.dart';
+import '../login_secure.dart';
+import 'package:get/get.dart';
 
 class SpaceCreateScreen extends StatefulWidget {
   // building_information_screen에서 전달받는 type 데이터
@@ -31,13 +39,19 @@ class _SpaceCreateScreenState extends State<SpaceCreateScreen> {
   String create_date = '';
   String modify_date = 'Null';
 
-  // 임의로 지정할 user name, 추후 user model과 연결해야해서 DB 연결시켜야함
-  late String user;
+  // 현재 로그인한 사용자 name
+  late String? userName;
 
   // 전달받은 type 데이터 저장할 변수
   late bool spaceType;
   // 전달받은 buildingId 데이터 저장할 변수
   late String buildingId;
+
+  // 게시물의 사진 초기화
+  final List<File> _images = [];
+  final picker = ImagePicker();
+  //받은 이미지들의 fire stoarge에서의 url을 저장
+  List img_url =[];
 
   bool checkCloseValue = false;
   bool checkOpenValue = false;
@@ -59,12 +73,29 @@ class _SpaceCreateScreenState extends State<SpaceCreateScreen> {
     setState(() {
       spaceFirebase.initDb();
     });
-    user = 'admin';
+    fetchUser();
+  }
+
+  // 사용자 데이터를 가져와서 user 변수에 할당하는 함수
+  Future<void> fetchUser() async {
+    final auth = Provider.of<FirebaseAuthProvider>(context, listen: false);
+    UserFirebase().getUserById(auth.authClient.currentUser!.uid)
+        .then((result) {
+      var userData = result as Map<String, dynamic>;
+      if (userData != null) {
+        userName = userData["name"];
+        logger.d(userName);
+        //return user;
+      }else{
+        logger.e("fetchUser error: 유저 정보를 가져오지 못하였습니다.");
+      }
+    });
   }
 
   // 위젯을 만들고 화면에 보여주는 함수
   @override
   Widget build(BuildContext context) {
+    logger.d("space create screen build");
     return Scaffold(
       // appBar 구현 코드
       appBar: AppBar(
@@ -167,6 +198,27 @@ class _SpaceCreateScreenState extends State<SpaceCreateScreen> {
             Divider(
               thickness: 1,
             ),
+
+            //이미지 업로드
+            Column(
+              children: [Text("이미지 업로드"),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.add_photo_alternate_outlined),
+                      onPressed: () {
+                        getImage();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            showImage(),
+
+            Divider(
+              thickness: 1,
+            ),
             TextField(
               // tag 값이 작성되었는지 확인하여 입력 받은 데이터 저장
               onChanged: (value) {
@@ -189,7 +241,8 @@ class _SpaceCreateScreenState extends State<SpaceCreateScreen> {
             SizedBox(height: 16),
             // 공간 작성 완료 버튼
             OutlinedButton(
-              onPressed: () {
+              onPressed: () async {
+                await uploadImage();
                 // 모든 필드가 작성되었는지 확인
                 if (name.isNotEmpty && wall != 0 && tag.isNotEmpty && content.isNotEmpty) {
                   // 입력받은 데이터로 새로운 space 데이터 생성하여 DB에 생성
@@ -200,9 +253,10 @@ class _SpaceCreateScreenState extends State<SpaceCreateScreen> {
                     type: checkOpenValue,
                     tag: tag,
                     content: content,
-                    author: user,
+                    author: userName,
                     create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
                     modify_date: modify_date,
+                    img_url: img_url,
                   );
 
                   spaceFirebase.addSpace(newSpace).then((value) {
@@ -246,6 +300,83 @@ class _SpaceCreateScreenState extends State<SpaceCreateScreen> {
           ],
         )
       )
+    );
+  }
+
+  uploadImage() async {
+    FileStorage fileStorage = Get.put(FileStorage());
+
+    //이미지 storage 및 firestore에 업로드
+    await Future.forEach(_images.asMap().entries, (entry) async {
+      final index = entry.key;
+      final image = entry.value;
+      final url = await fileStorage.uploadStorage(
+          image, "space/$userName/${name}_$create_date/test_$index");
+      img_url.add(url);
+      logger.d("returned value from uploadFile: $url");
+    });
+  }
+
+  // 비동기 처리를 통해 카메라와 갤러리에서 이미지를 가져옴
+  getImage() async {
+    final List<XFile> images = await picker.pickMultiImage();
+    if (images != []) {
+      images.forEach((e) {
+        _images.add(File(e.path));
+      });
+      logger.d("getImage: $_images");
+      setState(() {
+      }); ///이미지의 변화를 UI 에 전달, but 전체가 다 빌드된다는 문제가 발생
+    }
+  }
+
+  // 이미지를 보여주는 위젯
+  Widget showImage() {
+    logger.d("showImage: $_images");
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      child: GridView.count(
+        shrinkWrap: true,
+        crossAxisCount: 3,
+        crossAxisSpacing: 2.5,
+        children: _images.map((e) => _gridImage(e)).toList(),
+      ),
+    );
+  }
+
+  // 이미지 UI 위젯
+  Widget _gridImage(File image) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            image: DecorationImage(
+              image: FileImage(image),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned(
+            top: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _images.remove(image);
+                });
+              },
+              child: Container(
+                width: 20,
+                height: 20,
+                child: Icon(
+                  Icons.cancel,
+                  size: 15,
+                ),
+              ),
+            )
+        )
+      ],
     );
   }
 }

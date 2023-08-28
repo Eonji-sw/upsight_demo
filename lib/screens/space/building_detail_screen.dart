@@ -1,7 +1,6 @@
 /*
 건물(building)의 상세 화면을 보여주는 page
  */
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/building.dart';
@@ -203,6 +202,34 @@ class _BuildingDetailScreenState extends State<BuildingDetailScreen> {
           ],
         ),
       )
+    );
+  }
+}
+
+class ImageViewer extends StatelessWidget {
+  final List<dynamic>? imageUrls;
+
+  const ImageViewer({Key? key, required this.imageUrls}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrls==null) {
+      // Return a placeholder widget or handle the empty case as needed
+      return const SizedBox();
+    }
+
+    return SizedBox(
+      height: 150,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: imageUrls!.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.network(imageUrls![index]),
+          );
+        },
+      ),
     );
   }
 }

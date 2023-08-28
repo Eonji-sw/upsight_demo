@@ -1,4 +1,5 @@
 import 'package:board_project/router.dart';
+import 'package:board_project/screens/rounge/open_board/open_board_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -6,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'constants/colors.dart';
 import 'firebase_options.dart';
 import 'package:board_project/screens/login_secure.dart';
+
+import 'models/model_board.dart';
 
 void main() async {
   // calendar 한국어 설정을 위한 코드
@@ -25,9 +28,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //logger.d("메인앱 빌드");
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context)=> FirebaseAuthProvider()),
+        ChangeNotifierProvider(create: (context)=> SearchFieldModel())
       ],
       child: MaterialApp(
         title: 'UpSight',

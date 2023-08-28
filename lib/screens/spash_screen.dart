@@ -40,7 +40,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    //logger.d("시작상태");
     Timer(Duration(milliseconds: 500), () {
+      logger.d("이동");
       moveScreen();
     });
   }
@@ -52,6 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    logger.d("spalash 상태 체크");
     return Scaffold(
       appBar: null,
       body: Center(

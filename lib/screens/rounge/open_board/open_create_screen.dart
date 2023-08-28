@@ -52,7 +52,7 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   int views_count = COMMON_INIT_COUNT;
   bool isLikeClicked = false;
   int answerCount = COMMON_INIT_COUNT;
-  List <String?> img_url =[];
+  List img_url =[];
 
   String boardCategory = '';
   int lastBoardIndex = COMMON_INIT_COUNT;
@@ -88,7 +88,8 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
 
   // 사용자 데이터를 가져와서 user 변수에 할당하는 함수
     Future<void> fetchUser() async {
-          UserFirebase().getUserById(FirebaseAuthProvider().authClient.currentUser!.uid)
+        final auth = Provider.of<FirebaseAuthProvider>(context, listen: false);
+          UserFirebase().getUserById(auth.authClient.currentUser!.uid)
         .then((result) {
             var userData = result as Map<String, dynamic>;
             if (userData != null) {
@@ -105,11 +106,6 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
   Widget build(BuildContext context) {
     logger.d("open create state build call");
     return Scaffold(
-      // appBar
-      //   appBar: const PreferredSize(
-      //     preferredSize: Size.fromHeight(65),
-      //     child: AppbarBack(title: '게시글 작성'),
-      //   ),
       appBar: AppBar(
         backgroundColor: WHITE,
         centerTitle: true,
@@ -139,6 +135,8 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
                         ButtonYes(
                           name: '예',
                           onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (BuildContext context) => OpenBoardScreen(),
@@ -324,7 +322,11 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
                           ButtonYes(
                             name: '예',
                             onPressed: () async {
-                              await createQuestion(context);
+                              await createQuestion(context).then((_){
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
+                              });
                             },
                           ),
                         ],
@@ -347,14 +349,16 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
     await Future.forEach(_images.asMap().entries, (entry) async{
       final index = entry.key;
       final image = entry.value;
-      final url=await fileStorage.uploadFile(image, "question/$userName/${title}_$create_date/test_$index");
+      final url=await fileStorage.uploadStorage(image, "question/$userName/${title}_$create_date/test_$index");
       img_url.add(url);
       logger.d("returned value from uploadFile: $url");
     });
-
-/*    final url=await fileStorage.uploadFile(_images[0], "question/$userName/${title}_$create_date/test");
-    img_url.add(url);
-    logger.d("returned value from uploadFile: $url");*/
+/*      for (var entry in _images.asMap().entries){
+        fileStorage.uploadStorage(entry.value, "question/$userName/${title}_$create_date/test_${entry.key}").then((url){
+          img_url.add(url);
+          logger.d("returned value from uploadFile: $url");
+        });
+    }*/
 
     // 필수 필드가 작성되었는지 확인
     if (title.isNotEmpty && content.isNotEmpty && category != '글 주제 선택') {
@@ -380,23 +384,26 @@ class _OpenCreateScreenState extends State<OpenCreateScreen> {
           builder: (BuildContext context) => OpenDetailScreen(data: newQuestion, dataId: questionSnapshot!.docs.first.id, dataDoc: questionSnapshot!.docs.first),
         ),
       );*/
-        Navigator.of(context).pop();
+
     }
   }
 
   // 비동기 처리를 통해 카메라와 갤러리에서 이미지를 가져옴
   getImage() async {
     final List<XFile> images = await picker.pickMultiImage();
-    if (images != null) {
+    if (images != []) {
       images.forEach((e) {
         _images.add(File(e.path));
       });
-      //logger.d("getImage: $_images");
+      logger.d("getImage: $_images");
+      setState(() {
+      }); ///이미지의 변화를 UI 에 전달, but 전체가 다 빌드된다는 문제가 발생
     }
   }
 
   // 이미지를 보여주는 위젯
   Widget showImage() {
+    logger.d("showImage: $_images");
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
       child: GridView.count(

@@ -16,7 +16,6 @@ import 'package:board_project/providers/user_firestore.dart';
 import '../../../constants/colors.dart';
 import '../../../constants/list.dart';
 import '../../../constants/size.dart';
-import '../../../models/model_board.dart';
 import '../../../widgets/appbar_base.dart';
 import '../../../widgets/button_no.dart';
 import '../../../widgets/button_yes.dart';
@@ -37,7 +36,12 @@ class OpenBoardScreen extends StatefulWidget {
 
 class _OpenBoardScreenState extends State<OpenBoardScreen> {
 
+  // firebase 객체 생성
+  QuestionFirebase questionFirebase = QuestionFirebase();
   UserFirebase userFirebase = UserFirebase();
+
+  // DB에서 받아온 question 컬렉션 데이터 담을 list
+  List<Question> questions = [];
 
   // 현재 로그인한 사용자 name
   late String user;
@@ -79,21 +83,23 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     // _scrollController에 리스너 추가
     _scrollController.addListener(_scrollListener);
 
+    setState(() {
       // firebase 객체 초기화
+      questionFirebase.initDb();
       userFirebase.initDb();
 
       // Widget의 build 이후에 callback을 받기 위한 코드
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
         // 테스트용 코드 : DB에 데이터 한꺼번에 생성하는 함수
         // questionFirebase.generateData();
         // DB 데이터 받아오는 함수
-        //fetchData();
+        fetchData();
       });
-
+    });
   }
 
   // DB 데이터 받아오는 함수
-/*  Future<void> fetchData() async {
+  Future<void> fetchData() async {
     // 로딩 중인지 DB에서 받아온 데이터가 마지막인지 확인
     if (isLoading || isLastPage) return;
 
@@ -129,7 +135,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
         isLastPage = true;
       }
     });
-  }*/
+  }
 
   // 스크롤 이벤트를 처리하는 함수
   void _scrollListener() {
@@ -143,7 +149,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
 
     // 스크롤을 최하단까지 내렸을 때 추가로 더 가져올 데이터가 있을 때 실행되는 코드
     if (currentScroll >= maxScroll && !isLoading && !isLastPage) {
-      ///fetchData();
+      fetchData();
     }
   }
 
@@ -162,6 +168,21 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   // DB에서 검색한 게시글을 가져오는데 활용되는 변수
   Future<QuerySnapshot>? searchResults;
 
+  // X 아이콘 클릭시 검색어 삭제
+  emptyTextFormField() {
+    searchTextController.clear();
+  }
+
+  // 검색어 입력 후 submit하게 되면 DB에서 검색어와 일치하거나 포함하는 결과 가져와서 future 변수에 저장
+  controlSearching(str) {
+    searchText = str;
+    // 제목만 검색되게 함
+    Future<QuerySnapshot> allQuestions = questionFirebase.questionReference.where('title', isEqualTo: str).get();
+    setState(() {
+      // DB에서 필터링한 Question들 저장
+      searchResults = allQuestions;
+    });
+  }
 
   // 전체 question 목록을 보여주기 위한 함수
   Widget _totalItemWidget() {
@@ -257,28 +278,181 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
       body: Column(
         children: <Widget>[
           Row(
-            children: [ /// 자유게시판, 질문하기 바
-              BoardClickBar(menu:'자유게시판'),
-              BoardClickBar(menu: '질문하기'),
+            children: [ /// 자유게시판, 질문하기 클래스로 각각 분리하기
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                                OpenBoardScreen(),
+                          ),
+                        );
+                      },
+                      child: Text('자유게시판',
+                        style: TextStyle(
+                          color: KEY_BLUE,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: SizedBox(
+                          height: 2,
+                          width: double.infinity,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                                color: KEY_BLUE
+                            ),
+                          ),
+                        )
+                    )
+                  ]
+                ),
+              ),
+              Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  QnaBoardScreen(),
+                            ),
+                          );
+                        },
+                        child: Text('질문하기',
+                          style: TextStyle(
+                            color: TEXT_GREY,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: SizedBox(
+                            height: 2,
+                            width: double.infinity,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                  color: WHITE
+                              ),
+                            ),
+                          )
+                      )
+                    ]
+                  )
+              )
             ],
-          ),
-
+          ),///
           // 검색창
-            Padding( ///검색창 클래스 분리하기
-              padding: const EdgeInsets.all(12),
-              child: SearchBar(),
-            ),
-
+          Padding( ///검색창 클래스 분리하기
+            padding: const EdgeInsets.all(12),
+            child: TextFormField(
+              // 검색창 controller
+              controller: searchTextController,
+              decoration: InputDecoration(
+                hintText: '글 주제를 검색해보세요.',
+                hintStyle: TextStyle(
+                  color: TEXT_GREY,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                ),
+                filled: true,
+                fillColor: WHITE,
+                contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+                prefixIcon: Icon(Icons.search, color: TEXT_GREY,),
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.clear, color: TEXT_GREY,),
+                  onPressed: emptyTextFormField,
+                ),
+                // 폼 필드의 기본 테두리
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4.0),
+                  borderSide: BorderSide(color: L_GREY,),
+                ),
+                // 폼 필드가 활성화되어 있을 때 적용되는 테두리
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4.0),
+                  borderSide: BorderSide(color: L_GREY,),
+                ),
+                // 폼 필드 위에 마우스가 올라왔을 때 적용되는 테두리
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4.0),
+                  borderSide: BorderSide(color: L_GREY,),
+                ),
+              ),
+              style: TextStyle(color: BLACK),
+              // 키보드의 search 버튼을 누르면 게시물 검색 함수 실행
+              textInputAction: TextInputAction.search,
+              onFieldSubmitted: controlSearching,
+            ),),
           // 필터링
-          Container(
+          Container( ///필터링 클래스 분리
             height: 30,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FilteringBar(),///필터링 바
+                Expanded(
+                    child: ListView(
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      children: List.generate(BoardFilterList.length, (index) {
+                        String currentFilter = BoardFilterList[index];
+                        bool isSelected = selectedFilters.contains(currentFilter);
+
+                        return Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 5),
+                          child: ElevatedButton(
+                            child: Text(currentFilter,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: isSelected? KEY_BLUE : TEXT_GREY,
+                                height: 1,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              side: BorderSide(width: 1, color: isSelected? KEY_BLUE : L_GREY),
+                              elevation: 0,
+                              backgroundColor: WHITE,
+                            ),
+                            onPressed: () {
+                              toggleFilter(currentFilter);
+                              setState(() {
+                                if (selectedFilters.isEmpty) {
+                                  questions.clear();
+                                  lastDocument = null;
+                                  isLastPage = false;
+                                  fetchData();
+                                } else {
+                                  questions.clear();
+                                  lastDocument = null;
+                                  isLastPage = false;
+                                  fetchDataWithFilter();
+                                }
+                              });
+                            },
+                          ),
+                        );
+                      }),
+                    ),
+                ),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 5),
-                  child: ElevatedButton( ///초기화 버튼
+                  child: ElevatedButton(
                     child: Row(
                       children: [
                         Icon(
@@ -314,12 +488,11 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                         fetchData();
                       });
                     },
-                  ),///여기까지 초기화 버튼
+                  ),
                 )
               ],
             )
           ),
-
           // 정렬 기준
           Align( ///정렬 기준 클래스 분리
             alignment: Alignment.centerLeft,
@@ -357,11 +530,62 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
           GradientBase(),
           // 게시글 리스트
           Expanded(
-              child: searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters) ///게시글 보여주는 위젯
+              child: searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters)
           ),
         ],
       ),
     );
+  }
+
+  void toggleFilter(String filter) {
+    setState(() {
+      if (selectedFilters.contains(filter)) {
+        selectedFilters.remove(filter);
+      } else {
+        selectedFilters.add(filter);
+      }
+    });
+  }
+
+  Future<void> fetchDataWithFilter() async {
+    // 로딩 중인지 DB에서 받아온 데이터가 마지막인지 확인
+    if (isLoading || isLastPage) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    // 필터에 맞는 쿼리 생성
+    Query filteredQuery = questionFirebase.questionReference;
+    if (selectedFilters.isNotEmpty) {
+      filteredQuery = filteredQuery.where('category', whereIn: selectedFilters);
+    }
+
+    // DB에서 현재 받아온 마지막 데이터가 DB의 마지막 데이터인지 확인
+    if (lastDocument != null) {
+      // 데이터를 읽어올 시작 document를 lastDocument로 변경
+      filteredQuery = filteredQuery.startAfterDocument(lastDocument!);
+    }
+
+    // 데이터 수 제한
+    filteredQuery = filteredQuery.limit(pageSize);
+    // 가져온 query 데이터의 DocumentSnapshot() 저장
+    QuerySnapshot querySnapshot = await filteredQuery.get();
+    // snapshot을 통해 가져온 question 데이터들을 list로 저장
+    List<QueryDocumentSnapshot> newItems = querySnapshot.docs;
+
+    setState(() {
+      // type 맞춰서 기존 questions에 스크롤로 로딩할 때마다 가져온 query 데이터 추가
+      questions.addAll(newItems.map((doc) => Question.fromSnapshot(doc)).toList());
+      // 가져온 query 데이터가 비어있으면 null 저장, 아니라면 가져온 query 데이터의 마지막 값 저장
+      lastDocument = newItems.isNotEmpty ? newItems.last : null;
+
+      isLoading = false;
+      // 가져온 query 데이터의 크기가 한번에 가져올 데이터 수보다 작다면 마지막 페이지
+      if (newItems.length < pageSize) {
+        isLastPage = true;
+      }
+    });
   }
 
   // floating action button UI
@@ -597,256 +821,3 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     });
   }
 }
-
-
-class BoardClickBar extends StatelessWidget {
-  /// 자유게시판, 질문하기 선택바
-  final String menu;
-  late var routedScreen;
-
-  BoardClickBar({required this.menu}) {
-    if (this.menu == '자유게시판') {
-      this.routedScreen = OpenBoardScreen();
-    }
-    else if (this.menu == '질문하기') {
-      this.routedScreen = QnaBoardScreen();
-    }
-    else{
-      logger.e("init error: 메뉴버튼 이름을 제대로 작성하세요");
-      this.routedScreen=null;
-    }
-  }
-  Widget build(BuildContext context) {
-    return
-    Expanded(
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            InkWell(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        this.routedScreen,
-                  ),
-                );
-              },
-              child: Text(menu,
-                style: const TextStyle(
-                  color: KEY_BLUE,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: SizedBox(
-                  height: 2,
-                  width: double.infinity,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                        color: KEY_BLUE
-                    ),
-                  ),
-                )
-            )
-          ]
-      ),
-    );
-  }
-}
-
-//검색창 위젯
-class SearchBar extends StatelessWidget{
-  final TextEditingController searchTextController = TextEditingController();
-  SearchBar({super.key});
-
-  emptyTextFormField() {
-    searchTextController.clear();
-  }
-
-  Widget build(BuildContext context) {
-    logger.d("SearchBar widget build");
-    final searchField = Provider.of<SearchFieldModel>(context, listen: false);
-    return
-      TextFormField(
-          // 검색창 controller
-          controller: searchTextController,
-          decoration: InputDecoration(
-            hintText: '글 주제를 검색해보세요.',
-            hintStyle: TextStyle(
-              color: TEXT_GREY,
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-            ),
-            filled: true,
-            fillColor: WHITE,
-            contentPadding: EdgeInsets.symmetric(
-                vertical: 10.0, horizontal: 16.0),
-            prefixIcon: IconButton(
-              icon: Icon(Icons.search, color: TEXT_GREY,),
-              onPressed: ()=>{searchField.controlSearching(searchTextController.text)},
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(Icons.clear, color: TEXT_GREY,),
-              onPressed: emptyTextFormField,
-            ),
-            // 폼 필드의 기본 테두리
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(4.0),
-              borderSide: BorderSide(color: L_GREY,),
-            ),
-            // 폼 필드가 활성화되어 있을 때 적용되는 테두리
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(4.0),
-              borderSide: BorderSide(color: L_GREY,),
-            ),
-            // 폼 필드 위에 마우스가 올라왔을 때 적용되는 테두리
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(4.0),
-              borderSide: BorderSide(color: L_GREY,), /// 추가 리펙토링 필요, boarder 싹다 같은 생삭
-            ),
-          ),
-          style: TextStyle(color: BLACK),
-          // 키보드의 search 버튼을 누르면 게시물 검색 함수 실행
-          textInputAction: TextInputAction.search,
-          onFieldSubmitted: searchField.controlSearching,
-        );
-    }
-  }
-
-  //필터 버튼 위젯
-class FilteringBar extends StatelessWidget{
-  Widget build(BuildContext context){
-    final searchField = Provider.of<SearchFieldModel>(context, listen: false);
-    logger.d("FilteringBar widget build");
-
-    return
-    Expanded(
-      child: ListView(
-        shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        children: List.generate(BoardFilterList.length, (index) {
-          String currentFilter = BoardFilterList[index]; // 하자보수, 부동산계약, 임대,임차, 임대차
-          bool isSelected = searchField.selectedFilters.contains(currentFilter); //selectedFilter는 현재 고른 필터가 담겨있나 여부
-
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 5),
-            child: ElevatedButton(
-              child: Text(currentFilter,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: isSelected? KEY_BLUE : TEXT_GREY,
-                  height: 1,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                side: BorderSide(width: 1, color: isSelected? KEY_BLUE : L_GREY),
-                elevation: 0,
-                backgroundColor: WHITE,
-              ),
-              onPressed: () {
-                //토글 시 현재 필터 상태를 넣고 빼는 역할
-                searchField.toggleFilter(currentFilter);
-                logger.d("${searchField.selectedFilters}");
-
-                if (searchField.selectedFilters.isEmpty) { /// 다 더블 클릭 후 모든 버튼이 비활성화 시에는 다시 원래 질의 보여줌
-                  searchField.questions.clear();
-                  searchField.fetchQuestions();
-                  //logger.d("searchField.questions: ${searchField.questions}");
-                    //searchFiled.fetchData();
-                  } else { ///한번만 클릭 시에는 해당 클릭된 필터의 질의만 추출해야함, 여러개 필터 걸면 선택 된 질의만 가져옴
-                  logger.d("안비었어");
-                    searchField.questions.clear();
-
-                    //searchField.fetchDataWithFilter();
-                  }
-              },
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-class ResetButton extends StatelessWidget{
-
-  @override
-  Widget build(BuildContext context) {
-    logger.d("reset button widget build");
-    final searchField = Provider.of<SearchFieldModel>(context, listen: false);
-    return
-    ElevatedButton( ///초기화 버튼
-      child: Row(
-        children: [
-          Icon(
-            Icons.refresh,
-            color: KEY_BLUE,
-            size: 18,
-          ),
-          SizedBox(width: 1,),
-          Text('초기화',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: KEY_BLUE,
-              height: 1,
-            ),
-          ),
-        ],
-      ),
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
-        elevation: 0,
-        backgroundColor: WHITE,
-      ),
-      onPressed: () {
-          searchField.selectedFilters.clear();
-          searchField.questions.clear();
-          searchField.fetchQuestions();
-      },
-    );//여기까지 초기화 버튼
-  }
-}
-
-
-/*// 전체 question 목록을 보여주기 위한 위젯
-class totalItemWidget extends StatelessWidget {
-
-  Widget build(BuildContext context) {
-
-    return ListView.builder(
-      itemCount: questions.length,
-      itemBuilder: (BuildContext context, int index) {
-        sortQuestion(questions);
-
-        // 현재 index가 questions 크기와 같은지 판별하는 코드
-        if (index == questions.length) {
-          // 로딩 중이라면 로딩 circle 보여줌
-          if (isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else {
-            // 로딩 중이 아니라면 빈 위젯 보여줌
-            return const SizedBox.shrink();
-          }
-        }
-
-        isResetViews = false;
-
-        return Padding(
-            padding: EdgeInsets.only(top: 3, bottom: 3, left: 15, right: 15),
-            child: _buildItemWidget(questions[index]));
-      },
-      controller: _scrollController,
-    );
-  }
-}*/

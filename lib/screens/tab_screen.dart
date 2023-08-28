@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/colors.dart';
+import 'login_secure.dart';
 
 class TabScreen extends StatefulWidget {
   @override
@@ -24,6 +25,7 @@ class _TabScreenState extends State<TabScreen> {
 
   @override
   Widget build(BuildContext context) {
+    logger.d("tab 스크린 빌드");
     return CupertinoTabScaffold(
         tabBar: CupertinoTabBar(
             activeColor: KEY_BLUE,

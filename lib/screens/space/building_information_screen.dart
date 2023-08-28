@@ -166,6 +166,7 @@ class _BuildingInformationScreenState extends State<BuildingInformationScreen> {
                             author: spaceData['author'],
                             create_date: spaceData['create_date'],
                             modify_date: spaceData['modify_date'],
+                            img_url: spaceData['img_url'],
                           );
 
                           print(spaceData['building']);

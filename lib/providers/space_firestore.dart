@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:board_project/models/space.dart';
 import 'dart:async';
 
+import '../screens/login_secure.dart';
+
 class SpaceFirebase {
   late CollectionReference spaceReference;
   late Stream<QuerySnapshot> spaceStream;
@@ -29,4 +31,14 @@ class SpaceFirebase {
   Future deleteSpace(Space space) async {
     space.reference?.delete();
   }
+  Future <List?> getFile(Space space) async{
+    //firestore에서 url 가져오는 함수
+    try {
+      return space.img_url;
+    } catch (e) {
+      logger.e('Error: $e');
+    }
+    return null;
+  }
+
 }

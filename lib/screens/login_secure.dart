@@ -35,7 +35,6 @@ enum AuthStatus {
 class FirebaseAuthProvider with ChangeNotifier{
   FirebaseAuth authClient;
   User? user;
-  //final FlutterSecureStorage storage = const FlutterSecureStorage();
 
   FirebaseAuthProvider({auth}) : authClient = auth ?? FirebaseAuth.instance;
 

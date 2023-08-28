@@ -28,6 +28,7 @@ class _WallCreateScreenState extends State<WallCreateScreen> {
   String author = '';
   String create_date = '';
   String modify_date = 'Null';
+  List img_url =[];
 
   // 임의로 지정할 user name, 추후 user model과 연결해야해서 DB 연결시켜야함
   late String user;
@@ -155,6 +156,7 @@ class _WallCreateScreenState extends State<WallCreateScreen> {
                       author: user,
                       create_date: DateFormat('yy/MM/dd/HH/mm/ss').format(DateTime.now()),
                       modify_date: modify_date,
+                      img_url: img_url,
                     );
 
                     spaceFirebase.addSpace(newSpace).then((value) {

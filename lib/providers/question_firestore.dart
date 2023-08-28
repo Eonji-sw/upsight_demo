@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 
 import '../constants/size.dart';
+import '../screens/login_secure.dart';
 
 class QuestionFirebase {
   late FirebaseFirestore db;
@@ -69,5 +70,15 @@ class QuestionFirebase {
 
   Future deleteQuestion(Question question) async {
     question.reference?.delete();
+  }
+
+  Future <List?> getFile(Question question) async{
+    //firestore에서 url 가져오는 함수
+    try {
+      return question.img_url;
+    } catch (e) {
+      logger.e('Error: $e');
+    }
+    return null;
   }
 }

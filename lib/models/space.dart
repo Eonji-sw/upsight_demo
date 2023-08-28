@@ -7,10 +7,11 @@ class Space {
   late bool type;
   late String tag;
   late String content;
-  late String author;
+  late String? author;
   late String create_date;
   late String modify_date;
   late DocumentReference? reference;
+  late List<dynamic> img_url;
 
   Space({
     required this.building,
@@ -22,6 +23,7 @@ class Space {
     required this.author,
     required this.create_date,
     required this.modify_date,
+    required this.img_url,
     this.reference
   });
 
@@ -36,6 +38,7 @@ class Space {
       'author': author,
       'create_date': create_date,
       'modify_date': modify_date,
+      'img_url': img_url,
     };
   }
 
@@ -49,6 +52,7 @@ class Space {
     author = map?['author'];
     create_date = map?['create_date'];
     modify_date = map?['modify_date'];
+    img_url= map?['img_url'];
   }
 
   Space.fromSnapshot(DocumentSnapshot document) {
@@ -62,5 +66,6 @@ class Space {
     author = map['author'];
     create_date = map['create_date'];
     modify_date = map['modify_date'];
+    img_url= map['img_url'];
   }
 }

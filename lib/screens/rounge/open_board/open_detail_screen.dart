@@ -100,7 +100,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
 
   Future<List?> getImageURL() async {
     try {
-      List? urls=fileStorage.getFile(questionData);
+      var urls=questionFirebase.getFile(questionData);
         if (urls != null) {
           return urls;
         } else {
@@ -185,11 +185,7 @@ class _OpenDetailScreenState extends State<OpenDetailScreen> {
           // 뒤로가기
           leading: IconButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => OpenBoardScreen(),
-                  ),
-                );
+                Navigator.of(context).pop();
               },
               color: BLACK,
               icon: Icon(Icons.arrow_back_ios_new)),
@@ -957,12 +953,4 @@ class ImageViewer extends StatelessWidget {
     );
   }
 }
-/*  @override
-  Widget build(BuildContext context) {
-    return
-      Container(
-          alignment: Alignment.center,
-            height: 150,
-            width: 150,
-          child: Image.network(imageUrl[0]),
-        );*/
+
