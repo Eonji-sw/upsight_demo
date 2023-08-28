@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context)=> FirebaseAuthProvider()),
-        ChangeNotifierProvider(create: (context)=> SearchFieldModel())
+        //ChangeNotifierProvider(create: (context)=> SearchFieldModel())
       ],
       child: MaterialApp(
         title: 'UpSight',

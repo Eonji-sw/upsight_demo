@@ -11,6 +11,7 @@ class SearchFieldModel extends ChangeNotifier {
   List<String> selectedFilters=[];
   List <Question> questions=[];
   QuestionFirebase questionFirebase = QuestionFirebase();
+  String sortFilter='최신순';
 
   SearchFieldModel(){
     logger.d("searchField provider class initializing");
@@ -24,12 +25,11 @@ class SearchFieldModel extends ChangeNotifier {
     } else {
       selectedFilters.add(filter);
     }
-    logger.d("toggle");
+    notifyListeners();
   }
+
   Future<void> fetchQuestions() async {
     // 처음 앱을 실행했을 때 생성일 순으로 question 데이터를 보여주기 위한 코드
-
-
     Query query = questionFirebase.questionReference.orderBy('create_date', descending: true);
 
     // 가져온 query 데이터의 DocumentSnapshot() 저장
@@ -41,6 +41,15 @@ class SearchFieldModel extends ChangeNotifier {
     questions.addAll(newItems.map((doc) => Question.fromSnapshot(doc)).toList());
     notifyListeners();
   }
+
+  void setSortFilter(String sortFilter){
+    this.sortFilter = sortFilter;
+    questions.clear();
+    notifyListeners();
+  }
+
+
+
 /*  Future<void> fetchselectedQuestions() async {
     // 필터에 맞는 쿼리 생성
     Query filteredQuery = questionFirebase.questionReference;
@@ -50,8 +59,7 @@ class SearchFieldModel extends ChangeNotifier {
     notifyListeners();
   }*/
 
-
-  controlSearching(String? str) async { ///예외처리 추가해야함
+  void controlSearching(String? str) async { ///예외처리 추가해야함
     // 제목만 검색되게 함
     logger.d(str);
     QuestionFirebase questionFirebase = QuestionFirebase();
@@ -60,4 +68,30 @@ class SearchFieldModel extends ChangeNotifier {
     searchResults = allQuestions;
     notifyListeners();
   }
+}
+
+///하나의 포스팅 내부 정보를 관리하기 위한 뷰모델
+///좋아요 수, 조회 수를 관리하면 된다.
+class PostFieldModel extends ChangeNotifier {
+
+  late int viewCount;
+  late Question question;
+  QuestionFirebase questionFirebase = QuestionFirebase();
+
+  PostFieldModel({required this.question}){
+    viewCount=question.views_count;
+  }
+
+
+  /// 조회수 증가시키는 함수
+  Future<void> increaseViewsCount() async {
+    QuerySnapshot questionSnapshot = await questionFirebase.fetchQuestion(question);
+    // 해당 question의 조회수를 증가된 값으로 업데이트
+    await questionFirebase.questionReference.doc(
+        questionSnapshot.docs.first.id).update({
+      'views_count': FieldValue.increment(1),
+    });
+    viewCount+=1;
+  }
+  notifyListeners();
 }

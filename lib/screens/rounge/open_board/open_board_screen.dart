@@ -57,9 +57,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   // 해당 게시물 QuerySnapshot
   late QuerySnapshot? questionSnapshot;
 
-  // 화면에 보여질 게시글 정렬 기준(조회순, 최신순, 좋아요순, 댓글순)
-  String sortFilter = '최신순';
-
   // 검색어 저장할 변수
   String searchText = '';
 
@@ -77,18 +74,18 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   void initState() {
     super.initState();
     // _scrollController에 리스너 추가
-    _scrollController.addListener(_scrollListener);
+    //_scrollController.addListener(_scrollListener);
 
       // firebase 객체 초기화
       userFirebase.initDb();
 
       // Widget의 build 이후에 callback을 받기 위한 코드
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+     // WidgetsBinding.instance.addPostFrameCallback((_) {
         // 테스트용 코드 : DB에 데이터 한꺼번에 생성하는 함수
         // questionFirebase.generateData();
         // DB 데이터 받아오는 함수
         //fetchData();
-      });
+    //  });
 
   }
 
@@ -158,13 +155,12 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
 
   // ** 검색창(상단) 만들기 **
   // 검색창 입력 내용 controller
-  TextEditingController searchTextController = TextEditingController();
-  // DB에서 검색한 게시글을 가져오는데 활용되는 변수
-  Future<QuerySnapshot>? searchResults;
+  /// DB에서 검색한 게시글을 가져오는데 활용되는 변수
+  //Future<QuerySnapshot>? searchResults;
 
 
-  // 전체 question 목록을 보여주기 위한 함수
-  Widget _totalItemWidget() {
+  /// 전체 question 목록을 보여주기 위한 함수
+/*  Widget _totalItemWidget() {
     return ListView.builder(
       itemCount: questions.length,
       itemBuilder: (BuildContext context, int index) {
@@ -187,10 +183,10 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
       },
       controller: _scrollController,
     );
-  }
+  }*/
 
-  // 검색된 question 목록을 보여주기 위한 함수
-  Widget _searchItemWidget(List<String> selectedFilters) {
+  /// 검색된 question 목록을 보여주기 위한 함수
+/*  Widget _searchItemWidget(List<String> selectedFilters) {
     return FutureBuilder(
         future: searchResults,
         builder: (context, snapshot) {
@@ -241,125 +237,64 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
           }
         }
     );
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar
-      appBar: const PreferredSize(
-        preferredSize: Size.fromHeight(65),
-        child: AppbarBase(title: '라운지'),
-      ),
-      // floatingButton
-      floatingActionButton: buildFloating(context),
-      // body
-      body: Column(
-        children: <Widget>[
-          Row(
-            children: [ /// 자유게시판, 질문하기 바
-              BoardClickBar(menu:'자유게시판'),
-              BoardClickBar(menu: '질문하기'),
-            ],
-          ),
-
-          // 검색창
-            Padding( ///검색창 클래스 분리하기
-              padding: const EdgeInsets.all(12),
-              child: SearchBar(),
-            ),
-
-          // 필터링
-          Container(
-            height: 30,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FilteringBar(),///필터링 바
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 5),
-                  child: ElevatedButton( ///초기화 버튼
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.refresh,
-                          color: KEY_BLUE,
-                          size: 18,
-                        ),
-                        SizedBox(width: 1,),
-                        Text('초기화',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: KEY_BLUE,
-                            height: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      elevation: 0,
-                      backgroundColor: WHITE,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        selectedFilters.clear();
-                        questions.clear();
-                        lastDocument = null;
-                        isLastPage = false;
-                        fetchData();
-                      });
-                    },
-                  ),///여기까지 초기화 버튼
-                )
+    logger.d("*********Screen build!!***********");
+    return ChangeNotifierProvider(
+      create: (context)=> SearchFieldModel(),
+      child: Scaffold(
+        // appBar
+        appBar: const PreferredSize(
+          preferredSize: Size.fromHeight(65),
+          child: AppbarBase(title: '라운지'),
+        ),
+        // floatingButton
+        floatingActionButton: buildFloating(context),
+        // body
+        body: Column(
+          children: <Widget>[
+            Row(
+              children: [ /// 자유게시판, 질문하기 바
+                BoardClickBar(menu:'자유게시판'),
+                BoardClickBar(menu: '질문하기'),
               ],
-            )
-          ),
-
-          // 정렬 기준
-          Align( ///정렬 기준 클래스 분리
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              icon: Icon(Icons.swap_vert_sharp, color: D_GREY,),
-              label: Text(sortFilter.toString(),
-                style: TextStyle(
-                  color: D_GREY,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              onPressed: () {
-                showModalBottomSheet(
-                  backgroundColor: WHITE,
-                  context: context,
-                  builder: (BuildContext context) {
-                    return SheetBase(
-                      onSortChanged: (String sortFilter) {
-                        setState(() {
-                          this.sortFilter = sortFilter;
-                          questions.clear();
-                          lastDocument = null;
-                          isLastPage = false;
-                          fetchData();
-                        });
-                      },
-                    );
-                  },
-                );
-              },
             ),
-          ),
-          // 정보 배너
-          GradientBase(),
-          // 게시글 리스트
+
+            /// 검색창
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: SearchBar(),
+              ),
+
+            /// 필터링
+            Container(
+              height: 30,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FilteringBar(),///필터링 바
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 5),
+                    child: ResetFilterButton(),
+                  )
+                ],
+              )
+            ),
+            /// 정렬 기준
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SortFilterButton(),
+            ),
+            // 정보 배너
+            GradientBase(),
+            /// 게시글 리스트
           Expanded(
-              child: searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters) ///게시글 보여주는 위젯
-          ),
-        ],
+                child: TotalItemWidget(_scrollController)//searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters) ///게시글 보여주는 위젯
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -410,170 +345,8 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     );
   }
 
-  // 게시글 목록을 보여줄 UI 위젯
-  Widget _buildItemWidget(Question question) {///Row , Column 별 children 각각 분리
-    resetViews = question.views_count;
-    return Column(
-      children: <Widget>[
-        ListTile( ///타일 분리
-          contentPadding: EdgeInsets.all(0),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  // 카테고리
-                  Stack( ///클래스 분리
-                    children: [
-                      Container(
-                        width: 57,
-                        height: 25,
-                        decoration: ShapeDecoration(
-                          color: L_GREY,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
-                      ),
-                      Positioned.fill(
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: Text(question.category,
-                            style: TextStyle(
-                              color: TEXT_GREY,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Spacer(),
-                  // 작성자
-                  Text(question.author,
-                    style: TextStyle(
-                      color: TEXT_GREY,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 5, right: 5),
-                    child: Image.asset('assets/images/dot.png', width: 2),
-                  ),
-                  // 작성일
-                  Text(question.create_date,
-                    style: TextStyle(
-                      color: TEXT_GREY,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 10, bottom: 5),
-                child:
-                // 제목
-                Text(question.title,
-                  style: TextStyle(
-                    color: BLACK,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              )
-            ],
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 내용
-              Text(question.content,
-                maxLines: MAX_LINE_BOARD,
-                overflow: TextOverflow.ellipsis, // 3줄 이상일 경우 ...으로 표시
-                style: TextStyle(
-                  color: BLACK,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 5),
-                child: Row(children: [
-                  Container( ///컨테이너 분리
-                    child: Row(
-                      children: [
-                        // 좋아요
-                        Icon(Icons.favorite_border, size: 14, color: TEXT_GREY,),
-                        SizedBox(width: 5,),
-                        Text('좋아요',
-                          style: TextStyle(
-                            color: TEXT_GREY,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        SizedBox(width: 20,),
-                        // 댓글
-                        Icon(Icons.messenger_outline, size: 14, color: TEXT_GREY,),
-                        SizedBox(width: 4,),
-                        Text('댓글 ${question.answerCount}',
-                          style: TextStyle(
-                            color: TEXT_GREY,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Spacer(),
-                  // 조회수
-                  Row(
-                    children: [
-                      Icon(Icons.visibility_outlined, size: 14, color: TEXT_GREY,),
-                      SizedBox(width: 5,),
-                      Text('조회 ${question.views_count}',
-                        style: TextStyle(
-                          color: TEXT_GREY,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],),
-              ),
-            ],
-          ),
-          onTap: () async {
-            questionSnapshot = await questionFirebase.fetchQuestion(question);
-            // 게시글 중 하나를 눌렀을 경우 해당 게시글의 조회수 증가
-            await increaseViewsCount(question);
-
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                  builder: (BuildContext context) =>
-                      OpenDetailScreen(data: question, dataId: questionSnapshot!.docs.first.id, dataDoc: questionSnapshot!.docs.first)),
-            );
-
-            // 조회수 반영 개선을 위한 코드
-            isResetViews = true;
-            setState(() {
-              resetViews = (questionSnapshot!.docs.first.data() as Map<String, dynamic>)['views_count'];
-              if (question.views_count != resetViews) {
-                question.views_count = resetViews;
-              }
-            });
-          },
-        ),
-        DivideBoard(),
-      ],
-    );
-  }
-
-  // questions을 선택한 sortFilter로 sort하는 함수
-  void sortQuestion(List questions) {
+  /// questions을 선택한 sortFilter로 sort하는 함수
+/*  void sortQuestion(List questions) {
     if (sortFilter == '조회순') {
       questions.sort((a, b) => b.views_count.compareTo(a.views_count));
     } else if (sortFilter == '최신순') {
@@ -585,7 +358,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     }
   }
 
-  // 조회수 증가시키는 함수
+  /// 조회수 증가시키는 함수
   Future<void> increaseViewsCount(Question question) async {
     // 해당 question의 조회수를 증가된 값으로 업데이트
     await questionFirebase.questionReference.doc(questionSnapshot!.docs.first.id).update({
@@ -595,12 +368,12 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     setState(() {
       question.views_count += INCREASE_COUNT;
     });
-  }
+  }*/
 }
 
 
+/// 자유게시판, 질문하기 선택바
 class BoardClickBar extends StatelessWidget {
-  /// 자유게시판, 질문하기 선택바
   final String menu;
   late var routedScreen;
 
@@ -657,7 +430,7 @@ class BoardClickBar extends StatelessWidget {
   }
 }
 
-//검색창 위젯
+///검색창 위젯
 class SearchBar extends StatelessWidget{
   final TextEditingController searchTextController = TextEditingController();
   SearchBar({super.key});
@@ -716,7 +489,7 @@ class SearchBar extends StatelessWidget{
     }
   }
 
-  //필터 버튼 위젯
+  ///필터 버튼 위젯
 class FilteringBar extends StatelessWidget{
   Widget build(BuildContext context){
     final searchField = Provider.of<SearchFieldModel>(context, listen: false);
@@ -775,11 +548,13 @@ class FilteringBar extends StatelessWidget{
     );
   }
 }
-class ResetButton extends StatelessWidget{
+
+///필터링 초기화 버튼
+class ResetFilterButton extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    logger.d("reset button widget build");
+    logger.d("reset filter button widget build");
     final searchField = Provider.of<SearchFieldModel>(context, listen: false);
     return
     ElevatedButton( ///초기화 버튼
@@ -810,13 +585,281 @@ class ResetButton extends StatelessWidget{
         backgroundColor: WHITE,
       ),
       onPressed: () {
-          searchField.selectedFilters.clear();
-          searchField.questions.clear();
-          searchField.fetchQuestions();
+        ///뭔가 이상함... provider에서 정의해야할 것 같은데...
+          //searchField.selectedFilters.clear();
+          //searchField.questions.clear();
+          //searchField.fetchQuestions();
+
       },
-    );//여기까지 초기화 버튼
+    );
   }
 }
+
+
+class SortFilterButton extends StatelessWidget{
+  @override
+  Widget build(BuildContext context) {
+    final searchField = Provider.of<SearchFieldModel>(context, listen: false);
+    logger.d("sortFilterButton build");
+    return
+    Selector<SearchFieldModel, String>(
+      selector:(_,model)=> model.sortFilter,
+      builder:(_, text, __){
+        return
+          TextButton.icon(
+            icon: Icon(Icons.swap_vert_sharp, color: D_GREY,),
+            label: Text(text.toString(),
+                        style: TextStyle(
+                        color: D_GREY,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                          ),
+                       ),
+      onPressed: () {
+        showModalBottomSheet(
+          backgroundColor: WHITE,
+          context: context,
+          builder: (BuildContext context) {
+            return SheetBase(
+              onSortChanged: (String sortFilter) {
+                searchField.setSortFilter(sortFilter);
+                logger.d(searchField.sortFilter);
+              },
+            );
+          },
+        );
+      },
+          );}
+    );
+    throw UnimplementedError();
+  }
+}
+
+///게시글 컴포넌트 UI
+class PostWidget extends StatelessWidget{
+  final Question question;
+  PostWidget(this.question);
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<PostFieldModel>(
+        create: (context)=> PostFieldModel(question: question),
+      child: Column(
+        children: [
+          ListTile(
+            contentPadding: EdgeInsets.all(0),
+            title:PostUpperComponent(question), ///카테고리, 작성자, 작성일, 제목
+            subtitle: PostLowerComponent(question),///내용, 좋아요, 댓글, 조회수-> 좋아요랑 조회수만 뷰모델로 컨트롤 해주면 된다.
+              ///따라서 좋아요랑 조회수만 consumer 달아주면 되고 다른 녀석들은 build 되면 안됨
+
+              ///게시글 클릭 시 조회수 증가 & 해당 게시물 안으로 이동
+              onTap: ()=>{}
+                ),
+          DivideBoard(),
+        ],
+      ),
+    );
+  }
+}
+
+class PostUpperComponent extends StatelessWidget{
+  final Question question;
+  PostUpperComponent(this.question);
+
+  @override
+  Widget build(BuildContext context) {
+    return
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // 카테고리
+              Stack(
+                children: [
+                  Container(
+                    width: 57,
+                    height: 25,
+                    decoration: ShapeDecoration(
+                      color: L_GREY,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Text(question.category,
+                        style: TextStyle(
+                          color: TEXT_GREY,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Spacer(),
+              // 작성자
+              Text(question.author,
+                style: TextStyle(
+                  color: TEXT_GREY,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 5, right: 5),
+                child: Image.asset('assets/images/dot.png', width: 2),
+              ),
+              // 작성일
+              Text(question.create_date,
+                style: TextStyle(
+                  color: TEXT_GREY,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 10, bottom: 5),
+            child:
+            // 제목
+            Text(question.title,
+              style: TextStyle(
+                color: BLACK,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          )
+        ],
+      );
+  }
+}
+
+class PostLowerComponent extends StatelessWidget{
+  final Question question;
+  PostLowerComponent(this.question);
+
+  @override
+  Widget build(BuildContext context) {
+    return
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 내용
+          Text(question.content,
+            maxLines: MAX_LINE_BOARD,
+            overflow: TextOverflow.ellipsis, // 3줄 이상일 경우 ...으로 표시
+            style: TextStyle(
+              color: BLACK,
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 5),
+            child: Row(children: [
+              Container(
+                child: Row(
+                  children: [
+                    // 좋아요
+                    Icon(Icons.favorite_border, size: 14, color: TEXT_GREY,),
+                    SizedBox(width: 5,),
+                    Text('좋아요',
+                      style: TextStyle(
+                        color: TEXT_GREY,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    SizedBox(width: 20,),
+                    // 댓글
+                    Icon(Icons.messenger_outline, size: 14, color: TEXT_GREY,),
+                    SizedBox(width: 4,),
+                    Text('댓글 ${question.answerCount}',
+                      style: TextStyle(
+                        color: TEXT_GREY,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Spacer(),
+              // 조회수
+              Row(
+                children: [
+                  Icon(Icons.visibility_outlined, size: 14, color: TEXT_GREY,),
+                  SizedBox(width: 5,),
+
+                  Consumer<PostFieldModel>(
+                    builder: (context,postField,__) {
+                      return Text('조회 ${postField.viewCount}',
+                        style: TextStyle(
+                          color: TEXT_GREY,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      );
+                    }
+                  ),
+                ],
+              ),
+            ],),
+          ),
+        ],
+      );
+  }
+}
+
+  class TotalItemWidget extends StatelessWidget{
+    final ScrollController _scrollController;
+    TotalItemWidget(this._scrollController);
+    @override
+    Widget build(BuildContext context) {
+      logger.d("TotalItemWidget build");
+      final searchField = Provider.of<SearchFieldModel>(context, listen: false);
+      searchField.fetchQuestions().whenComplete(() => logger.d("fetch 완"));
+      return Consumer<SearchFieldModel>(
+        builder: (context,field,__) {
+          return ListView.builder(
+            itemCount: field.questions.length,
+            itemBuilder: (BuildContext context, int index) {
+              //sortQuestion(questions);
+
+              // 현재 index가 questions 크기와 같은지 판별하는 코드
+/*          if (index == searchField.questions.length) {
+                // 로딩 중이라면 로딩 circle 보여줌
+                if (isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else {
+                  // 로딩 중이 아니라면 빈 위젯 보여줌
+                  return const SizedBox.shrink();
+                }
+              }*/
+
+              //isResetViews = false;
+
+              return Padding(padding: EdgeInsets.only(top: 3, bottom: 3, left: 15, right: 15),
+                  child: PostWidget(field.questions[index]));
+            },
+            controller: _scrollController,
+          );
+        }
+      );
+    }
+  }
+
+
+
+
+
+
+
+
 
 
 /*// 전체 question 목록을 보여주기 위한 위젯
