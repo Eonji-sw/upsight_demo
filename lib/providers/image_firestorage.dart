@@ -1,5 +1,4 @@
 import 'package:board_project/screens/login_secure.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:board_project/models/question.dart';
@@ -41,6 +40,7 @@ class FileStorage extends GetxController{
       return null;
     }
   }
+
   List? getFile(Question questionData){
     //firestore에서 url 가져오는 함수
     try {
@@ -51,4 +51,6 @@ class FileStorage extends GetxController{
     }
     return null;
   }
+
+
 }

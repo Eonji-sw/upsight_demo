@@ -29,9 +29,7 @@ class _BuildingCreateScreenState extends State<BuildingCreateScreen> {
   @override
   void initState() {
     super.initState();
-    setState(() {
-      buildingFirebase.initDb();
-    });
+    buildingFirebase.initDb();
     user = 'admin';
   }
 

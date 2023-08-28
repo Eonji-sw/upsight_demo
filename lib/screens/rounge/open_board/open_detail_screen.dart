@@ -21,7 +21,7 @@ import '../../../constants/colors.dart';
 import '../../../constants/size.dart';
 import '../../../models/comment.dart';
 import '../../../providers/comment_firestore.dart';
-import '../../../providers/question_firestorage.dart';
+import '../../../providers/image_firestorage.dart';
 import '../../../widgets/appbar_action.dart';
 import '../../../widgets/null_answer.dart';
 import '../../../widgets/button_no.dart';

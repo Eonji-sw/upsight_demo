@@ -17,7 +17,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:board_project/providers/user_firestore.dart';
-import 'package:board_project/providers/question_firestorage.dart';
+import 'package:board_project/providers/image_firestorage.dart';
 import 'package:provider/provider.dart';
 import '../../../constants/colors.dart';
 import '../../../constants/list.dart';

@@ -8,7 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:board_project/providers/user_firestore.dart';
-import 'package:board_project/providers/question_firestorage.dart';
+import 'package:board_project/providers/image_firestorage.dart';
 
 import '../providers/question_firestore.dart';
 
