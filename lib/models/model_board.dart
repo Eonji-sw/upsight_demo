@@ -7,7 +7,7 @@ import 'package:board_project/screens/login_secure.dart';
 
 ///검색 관련 뷰모델
 class SearchFieldModel extends ChangeNotifier {
-  Future<QuerySnapshot<Object?>>? searchResults;
+  QuerySnapshot? searchResults;
   List<String> selectedFilters=[];
   List <Question> questions=[];
   QuestionFirebase questionFirebase = QuestionFirebase();
@@ -15,7 +15,7 @@ class SearchFieldModel extends ChangeNotifier {
 
   SearchFieldModel(){
     logger.d("searchField provider class initializing");
-    questionFirebase.initDb().then((value){logger.d("question fb init complete");});
+    questionFirebase.initDb().then((value){logger.d("question fb init complete // search field model");});
   }
 
   //필터 버튼 클릭시 해당 키워드 필터링을 위해 리스트에 필터링 할 버튼의 이름을 담는 함수
@@ -37,7 +37,7 @@ class SearchFieldModel extends ChangeNotifier {
     // snapshot을 통해 가져온 question 데이터들을 list로 저장
     List<QueryDocumentSnapshot> newItems = querySnapshot.docs;
 
-    // type 맞춰서 기존 questions에 스크롤로 로딩할 때마다 가져온 query 데이터 추가
+    // questions 에 Question 모델의 타입을 맞춰서 넣는다.
     questions.addAll(newItems.map((doc) => Question.fromSnapshot(doc)).toList());
     notifyListeners();
   }
@@ -64,8 +64,9 @@ class SearchFieldModel extends ChangeNotifier {
     logger.d(str);
     QuestionFirebase questionFirebase = QuestionFirebase();
     await questionFirebase.initDb();
-    Future<QuerySnapshot> allQuestions = questionFirebase.questionReference.where('title', isEqualTo: str).get();
-    searchResults = allQuestions;
+    searchResults = await questionFirebase.questionReference.where('title', isEqualTo: str).get();
+
+    //logger.d("$searchResults");
     notifyListeners();
   }
 }
@@ -80,11 +81,12 @@ class PostFieldModel extends ChangeNotifier {
 
   PostFieldModel({required this.question}){
     viewCount=question.views_count;
+    questionFirebase.initDb().then((value){logger.d("question fb init complete// post Field Model ");});
   }
 
 
-  /// 조회수 증가시키는 함수
-  Future<void> increaseViewsCount() async {
+  /// 조회수 증가시키는 함수, return 값은 question에 대한 snapshot을 준다.
+  Future<QuerySnapshot> increaseViewsCount() async {
     QuerySnapshot questionSnapshot = await questionFirebase.fetchQuestion(question);
     // 해당 question의 조회수를 증가된 값으로 업데이트
     await questionFirebase.questionReference.doc(
@@ -92,6 +94,7 @@ class PostFieldModel extends ChangeNotifier {
       'views_count': FieldValue.increment(1),
     });
     viewCount+=1;
+    notifyListeners();
+    return questionSnapshot;
   }
-  notifyListeners();
 }

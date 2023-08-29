@@ -74,7 +74,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   void initState() {
     super.initState();
     // _scrollController에 리스너 추가
-    //_scrollController.addListener(_scrollListener);
+    _scrollController.addListener(_scrollListener);
 
       // firebase 객체 초기화
       userFirebase.initDb();
@@ -88,45 +88,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     //  });
 
   }
-
-  // DB 데이터 받아오는 함수
-/*  Future<void> fetchData() async {
-    // 로딩 중인지 DB에서 받아온 데이터가 마지막인지 확인
-    if (isLoading || isLastPage) return;
-
-    setState(() {
-      isLoading = true;
-    });
-
-    // 처음 앱을 실행했을 때 생성일 순으로 question 데이터를 보여주기 위한 코드
-    Query query = questionFirebase.questionReference.orderBy('create_date', descending: true);
-
-    // DB에서 현재 받아온 마지막 데이터가 DB의 마지막 데이터인지 확인
-    if (lastDocument != null) {
-      // 데이터를 읽어올 시작 document를 lastDocument로 변경
-      query = query.startAfterDocument(lastDocument!);
-    }
-
-    // 데이터 수 제한
-    query = query.limit(pageSize);
-    // 가져온 query 데이터의 DocumentSnapshot() 저장
-    QuerySnapshot querySnapshot = await query.get();
-    // snapshot을 통해 가져온 question 데이터들을 list로 저장
-    List<QueryDocumentSnapshot> newItems = querySnapshot.docs;
-
-    setState(() {
-      // type 맞춰서 기존 questions에 스크롤로 로딩할 때마다 가져온 query 데이터 추가
-      questions.addAll(newItems.map((doc) => Question.fromSnapshot(doc)).toList());
-      // 가져온 query 데이터가 비어있으면 null 저장, 아니라면 가져온 query 데이터의 마지막 값 저장
-      lastDocument = newItems.isNotEmpty ? newItems.last : null;
-
-      isLoading = false;
-      // 가져온 query 데이터의 크기가 한번에 가져올 데이터 수보다 작다면 마지막 페이지
-      if (newItems.length < pageSize) {
-        isLastPage = true;
-      }
-    });
-  }*/
 
   // 스크롤 이벤트를 처리하는 함수
   void _scrollListener() {
@@ -153,37 +114,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     super.dispose();
   }
 
-  // ** 검색창(상단) 만들기 **
-  // 검색창 입력 내용 controller
-  /// DB에서 검색한 게시글을 가져오는데 활용되는 변수
-  //Future<QuerySnapshot>? searchResults;
-
-
-  /// 전체 question 목록을 보여주기 위한 함수
-/*  Widget _totalItemWidget() {
-    return ListView.builder(
-      itemCount: questions.length,
-      itemBuilder: (BuildContext context, int index) {
-        sortQuestion(questions);
-
-        // 현재 index가 questions 크기와 같은지 판별하는 코드
-        if (index == questions.length) {
-          // 로딩 중이라면 로딩 circle 보여줌
-          if (isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else {
-            // 로딩 중이 아니라면 빈 위젯 보여줌
-            return const SizedBox.shrink();
-          }
-        }
-
-        isResetViews = false;
-
-        return Padding(padding: EdgeInsets.only(top: 3, bottom: 3, left: 15, right: 15), child: _buildItemWidget(questions[index]));
-      },
-      controller: _scrollController,
-    );
-  }*/
 
   /// 검색된 question 목록을 보여주기 위한 함수
 /*  Widget _searchItemWidget(List<String> selectedFilters) {
@@ -242,60 +172,79 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
   @override
   Widget build(BuildContext context) {
     logger.d("*********Screen build!!***********");
+
     return ChangeNotifierProvider(
       create: (context)=> SearchFieldModel(),
-      child: Scaffold(
-        // appBar
-        appBar: const PreferredSize(
-          preferredSize: Size.fromHeight(65),
-          child: AppbarBase(title: '라운지'),
-        ),
-        // floatingButton
-        floatingActionButton: buildFloating(context),
-        // body
-        body: Column(
-          children: <Widget>[
-            Row(
-              children: [ /// 자유게시판, 질문하기 바
-                BoardClickBar(menu:'자유게시판'),
-                BoardClickBar(menu: '질문하기'),
-              ],
-            ),
+      builder:(context, child) {
+        final searchField=Provider.of<SearchFieldModel>(context, listen: false);
+        return Scaffold(
+          // appBar
+          appBar: const PreferredSize(
+            preferredSize: Size.fromHeight(65),
+            child: AppbarBase(title: '라운지'),
+          ),
+          // floatingButton
+          floatingActionButton: buildFloating(context),
+          // body
+          body: Column(
+            children: <Widget>[
+              Row(
+                children: [
 
-            /// 검색창
+                  /// 자유게시판, 질문하기 바
+                  BoardClickBar(menu: '자유게시판'),
+                  BoardClickBar(menu: '질문하기'),
+                ],
+              ),
+
+              /// 검색창
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: SearchBar(),
               ),
 
-            /// 필터링
-            Container(
-              height: 30,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  FilteringBar(),///필터링 바
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 5),
-                    child: ResetFilterButton(),
+              /// 필터링
+              Container(
+                  height: 30,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FilteringBar(),
+
+                      ///필터링 바
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 5),
+                        child: ResetFilterButton(),
+                      )
+                    ],
                   )
-                ],
-              )
-            ),
-            /// 정렬 기준
-            Align(
-              alignment: Alignment.centerLeft,
-              child: SortFilterButton(),
-            ),
-            // 정보 배너
-            GradientBase(),
-            /// 게시글 리스트
-          Expanded(
-                child: TotalItemWidget(_scrollController)//searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters) ///게시글 보여주는 위젯
-            ),
-          ],
-        ),
-      ),
+              ),
+
+              /// 정렬 스크롤 버튼
+              Align(
+                alignment: Alignment.centerLeft,
+                child: SortFilterButton(),
+              ),
+
+              /// 정보 배너
+              GradientBase(),
+
+              /// 게시글 리스트
+              Consumer<SearchFieldModel>(
+                builder: (context, searchField, _) {
+                  // Widget tree containing the Expanded widget
+                  logger.d("searchField.searchResults? ${searchField.searchResults}");
+                  return
+                    searchField.searchResults == null ? Expanded(child:TotalItemWidget()) : Expanded(child:SizedBox());
+                },
+              ),
+/*              Expanded(
+                  child: searchField.searchResults == null ? TotalItemWidget() : Spacer() //searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters) ///게시글 보여주는 위젯
+              ),*/
+            ],
+          ),
+        );
+      }
     );
   }
 
@@ -357,17 +306,6 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
       questions.sort((a, b) => b.answerCount.compareTo(a.answerCount));
     }
   }
-
-  /// 조회수 증가시키는 함수
-  Future<void> increaseViewsCount(Question question) async {
-    // 해당 question의 조회수를 증가된 값으로 업데이트
-    await questionFirebase.questionReference.doc(questionSnapshot!.docs.first.id).update({
-      'views_count': FieldValue.increment(INCREASE_COUNT),
-    });
-
-    setState(() {
-      question.views_count += INCREASE_COUNT;
-    });
   }*/
 }
 
@@ -501,7 +439,7 @@ class FilteringBar extends StatelessWidget{
         shrinkWrap: true,
         scrollDirection: Axis.horizontal,
         children: List.generate(BoardFilterList.length, (index) {
-          String currentFilter = BoardFilterList[index]; // 하자보수, 부동산계약, 임대,임차, 임대차
+          String currentFilter = BoardFilterList[index]; // 하자보수, 부동산계약, 임대, 임차, 임대차 키워드들이 담기는 리스트
           bool isSelected = searchField.selectedFilters.contains(currentFilter); //selectedFilter는 현재 고른 필터가 담겨있나 여부
 
           return Padding(
@@ -585,16 +523,14 @@ class ResetFilterButton extends StatelessWidget{
         backgroundColor: WHITE,
       ),
       onPressed: () {
-        ///뭔가 이상함... provider에서 정의해야할 것 같은데...
-          //searchField.selectedFilters.clear();
-          //searchField.questions.clear();
-          //searchField.fetchQuestions();
-
+          searchField.selectedFilters.clear();
+          searchField.questions.clear();
+          searchField.searchResults=null;
+          searchField.fetchQuestions();
       },
     );
   }
 }
-
 
 class SortFilterButton extends StatelessWidget{
   @override
@@ -607,9 +543,9 @@ class SortFilterButton extends StatelessWidget{
       builder:(_, text, __){
         return
           TextButton.icon(
-            icon: Icon(Icons.swap_vert_sharp, color: D_GREY,),
+            icon: const Icon(Icons.swap_vert_sharp, color: D_GREY,),
             label: Text(text.toString(),
-                        style: TextStyle(
+                        style: const TextStyle(
                         color: D_GREY,
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -641,22 +577,39 @@ class PostWidget extends StatelessWidget{
   PostWidget(this.question);
   @override
   Widget build(BuildContext context) {
+    //logger.d("Post Widget build");
     return ChangeNotifierProvider<PostFieldModel>(
         create: (context)=> PostFieldModel(question: question),
-      child: Column(
-        children: [
-          ListTile(
-            contentPadding: EdgeInsets.all(0),
-            title:PostUpperComponent(question), ///카테고리, 작성자, 작성일, 제목
-            subtitle: PostLowerComponent(question),///내용, 좋아요, 댓글, 조회수-> 좋아요랑 조회수만 뷰모델로 컨트롤 해주면 된다.
-              ///따라서 좋아요랑 조회수만 consumer 달아주면 되고 다른 녀석들은 build 되면 안됨
+        builder: (context,child) {
+          return
+          Column(
+            children: [
+              ListTile(
+                contentPadding: EdgeInsets.all(0),
+                title: PostUpperComponent(question),
 
-              ///게시글 클릭 시 조회수 증가 & 해당 게시물 안으로 이동
-              onTap: ()=>{}
-                ),
-          DivideBoard(),
-        ],
-      ),
+                ///카테고리, 작성자, 작성일, 제목
+                subtitle: PostLowerComponent(question),
+
+                ///내용, 좋아요, 댓글, 조회수-> 좋아요랑 조회수만 뷰모델로 컨트롤 해주면 된다.
+                ///따라서 좋아요랑 조회수만 consumer 달아주면 되고 다른 녀석들은 build 되면 안됨
+
+                ///게시글 클릭 시 조회수 증가 & 해당 게시물 안으로 이동
+                onTap: () async {
+                  final postField= Provider.of<PostFieldModel>(context, listen: false);
+                  QuerySnapshot questionSnapshot= await postField.increaseViewsCount();
+
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (BuildContext context) =>
+                            OpenDetailScreen(data: question, dataId: questionSnapshot.docs.first.id, dataDoc: questionSnapshot!.docs.first)),
+                  );
+                },
+              ),
+              DivideBoard(),
+            ],
+          );
+        }
     );
   }
 }
@@ -667,6 +620,7 @@ class PostUpperComponent extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
+    //logger.d("PostUpperComponent build");
     return
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -744,6 +698,7 @@ class PostLowerComponent extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
+    //logger.d("PostLowerComponent build");
     return
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -816,39 +771,38 @@ class PostLowerComponent extends StatelessWidget{
 }
 
   class TotalItemWidget extends StatelessWidget{
-    final ScrollController _scrollController;
-    TotalItemWidget(this._scrollController);
+    //final ScrollController _scrollController;
+    //TotalItemWidget(this._scrollController);
+
+    Future<void> _fetchQuestions(SearchFieldModel searchField) async {
+      if (searchField.questions.isEmpty) {
+        await searchField.fetchQuestions();
+      }
+    }
     @override
     Widget build(BuildContext context) {
       logger.d("TotalItemWidget build");
       final searchField = Provider.of<SearchFieldModel>(context, listen: false);
-      searchField.fetchQuestions().whenComplete(() => logger.d("fetch 완"));
-      return Consumer<SearchFieldModel>(
-        builder: (context,field,__) {
-          return ListView.builder(
-            itemCount: field.questions.length,
-            itemBuilder: (BuildContext context, int index) {
-              //sortQuestion(questions);
 
-              // 현재 index가 questions 크기와 같은지 판별하는 코드
-/*          if (index == searchField.questions.length) {
-                // 로딩 중이라면 로딩 circle 보여줌
-                if (isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else {
-                  // 로딩 중이 아니라면 빈 위젯 보여줌
-                  return const SizedBox.shrink();
-                }
-              }*/
-
-              //isResetViews = false;
-
-              return Padding(padding: EdgeInsets.only(top: 3, bottom: 3, left: 15, right: 15),
-                  child: PostWidget(field.questions[index]));
-            },
-            controller: _scrollController,
-          );
-        }
+      return FutureBuilder<void>(
+        future: _fetchQuestions(searchField),
+        builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator()); // Show a loading indicator while fetching data
+          } else if (snapshot.connectionState == ConnectionState.done) {
+            return ListView.builder(
+              itemCount: searchField.questions.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 3, bottom: 3, left: 15, right: 15),
+                  child: PostWidget(searchField.questions[index]),
+                );
+              },
+            );
+          } else {
+            return const Text('Error fetching data'); // Show an error message if the fetch operation fails
+          }
+        },
       );
     }
   }
