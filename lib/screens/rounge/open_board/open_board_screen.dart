@@ -428,7 +428,7 @@ class SearchBar extends StatelessWidget{
   }
 
   ///필터 버튼 위젯
-class FilteringBar extends StatelessWidget{
+class FilteringBar extends StatelessWidget{//
   Widget build(BuildContext context){
     final searchField = Provider.of<SearchFieldModel>(context, listen: false);
     logger.d("FilteringBar widget build");
