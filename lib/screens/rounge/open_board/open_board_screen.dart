@@ -392,7 +392,7 @@ class SearchBar extends StatelessWidget{
               fontWeight: FontWeight.w400,
             ),
             filled: true,
-            fillColor: WHITE,
+            fillColor: WHITE,/////
             contentPadding: EdgeInsets.symmetric(
                 vertical: 10.0, horizontal: 16.0),
             prefixIcon: IconButton(
