@@ -1,7 +1,7 @@
 {
   "file_generated_by": "FlutterFire CLI",
   "purpose": "FirebaseAppID & ProjectID for this Firebase app in this directory",
-  "GOOGLE_APP_ID": "1:193431955629:ios:9943eaf8e8b95ca60e3e24",
-  "FIREBASE_PROJECT_ID": "flutter-board-firebase-fcbbf",
-  "GCM_SENDER_ID": "193431955629"
+  "GOOGLE_APP_ID": "1:980765740693:ios:b2e36779002d55836c959c",
+  "FIREBASE_PROJECT_ID": "flutter-upsightdemo",
+  "GCM_SENDER_ID": "980765740693"
 }
