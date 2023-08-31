@@ -10,6 +10,7 @@ class SearchFieldModel extends ChangeNotifier {
   QuerySnapshot? searchResults;
   List<String> selectedFilters=[];
   List <Question> questions=[];
+  List<Question> filteredQuestions = [];
   QuestionFirebase questionFirebase = QuestionFirebase();
   String sortFilter='최신순';
 
@@ -41,6 +42,17 @@ class SearchFieldModel extends ChangeNotifier {
     questions.addAll(newItems.map((doc) => Question.fromSnapshot(doc)).toList());
     notifyListeners();
   }
+
+  void filterQuestions() {
+    if (selectedFilters.isEmpty) {
+      //filteredQuestions = List.from(questions); // If no filters are selected, show all questions
+    } else {
+      filteredQuestions = questions.where((question) => selectedFilters.contains(question.toMap()['category'])).toList(); // Filter the questions based on the selected filters
+      logger.d("filter question $filteredQuestions");
+      //questions=filteredQuestions;
+    }
+  }
+
 
   void setSortFilter(String sortFilter){
     this.sortFilter = sortFilter;
@@ -81,7 +93,7 @@ class PostFieldModel extends ChangeNotifier {
 
   PostFieldModel({required this.question}){
     viewCount=question.views_count;
-    questionFirebase.initDb().then((value){logger.d("question fb init complete// post Field Model ");});
+    questionFirebase.initDb().then((value){});
   }
 
 

@@ -176,7 +176,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
     return ChangeNotifierProvider(
       create: (context)=> SearchFieldModel(),
       builder:(context, child) {
-        final searchField=Provider.of<SearchFieldModel>(context, listen: false);
+
         return Scaffold(
           // appBar
           appBar: const PreferredSize(
@@ -236,7 +236,7 @@ class _OpenBoardScreenState extends State<OpenBoardScreen> {
                   logger.d("searchField.searchResults? ${searchField.searchResults}");
                   return
                     searchField.searchResults == null ? Expanded(child:TotalItemWidget()) : Expanded(child:SizedBox());
-                },
+                },///맨처음에만 null이고 search 후에는 null이 아니니까 뒤쪽꺼가 출력이 되어 totalItemWidget 내의 로직이 안먹히는 중임
               ),
 /*              Expanded(
                   child: searchField.searchResults == null ? TotalItemWidget() : Spacer() //searchText.isEmpty ? _totalItemWidget() : _searchItemWidget(selectedFilters) ///게시글 보여주는 위젯
@@ -469,9 +469,9 @@ class FilteringBar extends StatelessWidget{//
 
                 if (searchField.selectedFilters.isEmpty) { /// 다 더블 클릭 후 모든 버튼이 비활성화 시에는 다시 원래 질의 보여줌
                   searchField.questions.clear();
-                  searchField.fetchQuestions();
+                  //searchField.fetchQuestions();
                   //logger.d("searchField.questions: ${searchField.questions}");
-                    //searchFiled.fetchData();
+
                   } else { ///한번만 클릭 시에는 해당 클릭된 필터의 질의만 추출해야함, 여러개 필터 걸면 선택 된 질의만 가져옴
                   logger.d("안비었어");
                     searchField.questions.clear();
@@ -599,11 +599,11 @@ class PostWidget extends StatelessWidget{
                   final postField= Provider.of<PostFieldModel>(context, listen: false);
                   QuerySnapshot questionSnapshot= await postField.increaseViewsCount();
 
-                  await Navigator.of(context).push(
+/*                  await Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (BuildContext context) =>
                             OpenDetailScreen(data: question, dataId: questionSnapshot.docs.first.id, dataDoc: questionSnapshot!.docs.first)),
-                  );
+                  );*/
                 },
               ),
               DivideBoard(),
@@ -776,12 +776,26 @@ class PostLowerComponent extends StatelessWidget{
 
     Future<void> _fetchQuestions(SearchFieldModel searchField) async {
       if (searchField.questions.isEmpty) {
+        ///맨 처음 가져오는 경우
+        if(searchField.selectedFilters.isEmpty){
         await searchField.fetchQuestions();
+        }
+        ///필터 걸린게 없는 경우
+        else{
+
+        }
+      }
+      ///question 리스트 일단 가져와졌고, 필터링을 하고 싶을 때
+      else{
+        if(searchField.selectedFilters.isNotEmpty){
+          searchField.filterQuestions();
+          logger.d("searchField.questions: ${searchField.questions}");
+        }
       }
     }
     @override
     Widget build(BuildContext context) {
-      logger.d("TotalItemWidget build");
+      logger.d("TotalItemWidget build");///fetch question 함수 때문에 얘 결과 받아오는거 때문에 두번 빌드됨
       final searchField = Provider.of<SearchFieldModel>(context, listen: false);
 
       return FutureBuilder<void>(
