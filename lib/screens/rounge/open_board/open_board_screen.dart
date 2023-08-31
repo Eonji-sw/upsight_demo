@@ -599,11 +599,11 @@ class PostWidget extends StatelessWidget{
                   final postField= Provider.of<PostFieldModel>(context, listen: false);
                   QuerySnapshot questionSnapshot= await postField.increaseViewsCount();
 
-/*                  await Navigator.of(context).push(
+                  await Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (BuildContext context) =>
                             OpenDetailScreen(data: question, dataId: questionSnapshot.docs.first.id, dataDoc: questionSnapshot!.docs.first)),
-                  );*/
+                  );
                 },
               ),
               DivideBoard(),

@@ -11,7 +11,7 @@ import 'package:board_project/providers/space_firestore.dart';
 import 'package:board_project/screens/space/building_board_screen.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import '../../providers/question_firestorage.dart';
+import '../../providers/image_firestorage.dart';
 import '../../providers/user_firestore.dart';
 import '../login_secure.dart';
 import 'package:get/get.dart';
